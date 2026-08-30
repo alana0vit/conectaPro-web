@@ -23,7 +23,11 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
-    },
+  'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+  // Regra do React Compiler (react-hooks v7). É recomendação de
+  // performance, não de correção. Rebaixada até refatorarmos os
+  // effects de ListaProf.
+  'react-hooks/set-state-in-effect': 'warn',
+},
   },
 ])
