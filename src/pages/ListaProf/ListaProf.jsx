@@ -59,29 +59,6 @@ function ListaProf() {
       .catch((err) => console.error(err));
   }, []);
 
-  // --- NOVO USEEFFECT (AUTO-FILTRO DO JÃO PEDRO) ---
-  // Este useEffect vigia as mudanças nos filtros.
-  // Quando a categoria, as estrelas, o raio ou o GPS mudarem, ele dispara a busca automaticamente.
-  // IMPORTANTE: 'termoBusca' (o texto digitado) foi excluído propositalmente para não fazer uma chamada
-  // à API a cada letra digitada, o que derrubaria o servidor. A busca por texto ainda depende do botão/Enter.
-  useEffect(() => {
-    // Chamamos o lidarComBusca sem evento (undefined), e ele usa os estados atuais.
-    lidarComBusca();
-  }, [categoriaSelecionada, filtroEstrelas, raioKm, usandoLocalizacao]);
-  // ------------------------------------
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      // Na atualização periódica, usamos os últimos filtros que foram usados ativamente.
-      buscarProfissionais(ultimosFiltrosRef.current);
-    }, INTERVALO_REFRESH);
-    return () => clearInterval(id);
-  }, []);
-
-  useEffect(() => {
-    setPaginaAtual(1);
-  }, [termoBusca, categoriaSelecionada, filtroEstrelas, raioKm, usandoLocalizacao]);
-
   const lidarComBusca = (e) => {
     // Previne o comportamento padrão do form (recarregar a página) se a função for chamada por ele.
     if (e && e.preventDefault) e.preventDefault();
@@ -124,6 +101,29 @@ function ListaProf() {
     }
   };
 
+  // --- NOVO USEEFFECT (AUTO-FILTRO DO JÃO PEDRO) ---
+  // Este useEffect vigia as mudanças nos filtros.
+  // Quando a categoria, as estrelas, o raio ou o GPS mudarem, ele dispara a busca automaticamente.
+  // IMPORTANTE: 'termoBusca' (o texto digitado) foi excluído propositalmente para não fazer uma chamada
+  // à API a cada letra digitada, o que derrubaria o servidor. A busca por texto ainda depende do botão/Enter.
+  useEffect(() => {
+    // Chamamos o lidarComBusca sem evento (undefined), e ele usa os estados atuais.
+    lidarComBusca();
+  }, [categoriaSelecionada, filtroEstrelas, raioKm, usandoLocalizacao]);
+  // ------------------------------------
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      // Na atualização periódica, usamos os últimos filtros que foram usados ativamente.
+      buscarProfissionais(ultimosFiltrosRef.current);
+    }, INTERVALO_REFRESH);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [termoBusca, categoriaSelecionada, filtroEstrelas, raioKm, usandoLocalizacao]);
+
   const alternarLocalizacao = () => {
     if (usandoLocalizacao) {
       setUsandoLocalizacao(false);
@@ -135,7 +135,7 @@ function ListaProf() {
       }
 
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
+        () => {
           setUsandoLocalizacao(true);
           // A busca será disparada pelo useEffect quando o estado 'usandoLocalizacao' for atualizado.
         },
