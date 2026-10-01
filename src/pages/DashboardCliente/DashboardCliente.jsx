@@ -83,6 +83,18 @@ function DashboardCliente() {
     return () => clearInterval(id);
   }, []);
 
+  const iniciarPagamento = async (demanda) => {
+    try {
+      const res = await api.post(`/api/payments/demand/${demanda.id}/checkout`);
+      const checkoutUrl = res.data?.checkoutUrl;
+      if (!checkoutUrl) throw new Error("Checkout não retornado.");
+      window.location.href = checkoutUrl.startsWith("http") ? checkoutUrl : `${import.meta.env.VITE_API_URL || "http://localhost:8080"}${checkoutUrl}`;
+    } catch (error) {
+      console.error("Erro ao iniciar pagamento:", error);
+      toast.error(error.response?.data || "Não foi possível iniciar o pagamento.");
+    }
+  };
+
   const enviarAvaliacaoSistema = async (e) => {
     e.preventDefault();
     if (!pedidoParaAvaliar) return;
@@ -138,16 +150,18 @@ function DashboardCliente() {
     if (!matchesTexto) return false;
 
     if (abaAtiva === 'PENDENTE') return status === 'ABERTO';
+    if (abaAtiva === 'PAGAMENTO') return status === 'AGUARDANDO_PAGAMENTO';
     if (abaAtiva === 'ANDAMENTO') return status === 'AGUARDANDO';
-    if (abaAtiva === 'FINALIZADO') return status === 'FECHADO' || status === 'REJEITADO';
+    if (abaAtiva === 'FINALIZADO') return status === 'FECHADO' || status === 'REJEITADO' || status === 'EXPIRADO';
     return true;
   });
 
   const pendentes = pedidos.filter(p => String(p.demandStatus || '').toUpperCase() === 'ABERTO').length;
+  const aguardandoPagamento = pedidos.filter(p => String(p.demandStatus || '').toUpperCase() === 'AGUARDANDO_PAGAMENTO').length;
   const emAndamento = pedidos.filter(p => String(p.demandStatus || '').toUpperCase() === 'AGUARDANDO').length;
   const finalizados = pedidos.filter(p => {
     const s = String(p.demandStatus || '').toUpperCase();
-    return s === 'FECHADO' || s === 'REJEITADO';
+    return s === 'FECHADO' || s === 'REJEITADO' || s === 'EXPIRADO';
   }).length;
 
   return (
@@ -188,6 +202,18 @@ function DashboardCliente() {
                 <span className="status-counter-subtext">Aguardando retorno do profissional</span>
               </div>
               <div className="status-icon-box"><i className="bi bi-clock-fill"></i></div>
+            </div>
+
+            <div
+              className={`premium-status-card card-amber-theme ${abaAtiva === 'PAGAMENTO' ? 'active-card' : ''}`}
+              onClick={() => setAbaAtiva('PAGAMENTO')}
+            >
+              <span className="status-counter-number">{aguardandoPagamento}</span>
+              <div className="status-meta-info">
+                <span className="status-counter-label">Pagamento Pendente</span>
+                <span className="status-counter-subtext">Serviços aceitos pelo profissional</span>
+              </div>
+              <div className="status-icon-box"><i className="bi bi-credit-card-fill"></i></div>
             </div>
 
             <div
@@ -250,6 +276,12 @@ function DashboardCliente() {
                 onClick={() => setAbaAtiva('PENDENTE')}
               >
                 Pendentes <span className="tab-count">{pendentes}</span>
+              </button>
+              <button
+                className={`tab-link-item ${abaAtiva === 'PAGAMENTO' ? 'is-active' : ''}`}
+                onClick={() => setAbaAtiva('PAGAMENTO')}
+              >
+                Pagamento <span className="tab-count">{aguardandoPagamento}</span>
               </button>
               <button
                 className={`tab-link-item ${abaAtiva === 'ANDAMENTO' ? 'is-active' : ''}`}
@@ -421,7 +453,20 @@ function DashboardCliente() {
                   </button>
                 )}
 
-                {String(pedidoDetalhado.demandStatus || '').toUpperCase() === 'AGUARDANDO' && (
+                {String(pedidoDetalhado.demandStatus || '').toUpperCase() === 'AGUARDANDO_PAGAMENTO' && (
+                <div className="payment-pending-box">
+                  <div>
+                    <strong>Pagamento necessário</strong>
+                    <p>O profissional aceitou a solicitação e definiu o valor final.</p>
+                    <span>Valor: <b>{Number(pedidoDetalhado.finalValue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</b></span>
+                  </div>
+                  <button className="btn-modal-submit-primary" onClick={() => iniciarPagamento(pedidoDetalhado)}>
+                    <i className="bi bi-credit-card"></i> Ir para pagamento
+                  </button>
+                </div>
+              )}
+
+              {String(pedidoDetalhado.demandStatus || '').toUpperCase() === 'AGUARDANDO' && (
                   <DetalhesSolicitacao demanda={pedidoDetalhado} modo="CLIENTE" />
                 )}
               </div>

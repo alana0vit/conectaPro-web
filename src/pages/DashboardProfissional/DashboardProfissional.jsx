@@ -18,6 +18,7 @@ function DashboardProfissional() {
   const [pedidoDetalhado, setPedidoDetalhado] = useState(null);
   const [buscaTexto, setBuscaTexto] = useState('');
   const [dadosPerfil, setDadosPerfil] = useState(null);
+  const [aceite, setAceite] = useState({ visivel: false, pedidoId: null, valor: "" });
 
   const [confirmacao, setConfirmacao] = useState({
     visivel: false,
@@ -70,6 +71,34 @@ function DashboardProfissional() {
     return () => clearInterval(id);
   }, []);
 
+  const abrirAceite = (e, pedido) => {
+    e.stopPropagation();
+    setPedidoDetalhado(null);
+    setAceite({
+      visivel: true,
+      pedidoId: pedido.id,
+      valor: pedido.suggestedValue != null ? String(pedido.suggestedValue) : ""
+    });
+  };
+
+  const confirmarAceite = async (e) => {
+    e.preventDefault();
+    const valor = Number(String(aceite.valor).replace(",", "."));
+    if (!aceite.pedidoId || !Number.isFinite(valor) || valor <= 0) {
+      toast.error("Informe um valor final válido para o serviço.");
+      return;
+    }
+
+    try {
+      await api.patch(`/api/demand/${aceite.pedidoId}/accept`, { finalValue: valor });
+      toast.success("Serviço aceito. O cliente foi encaminhado para o pagamento.");
+      setAceite({ visivel: false, pedidoId: null, valor: "" });
+      await buscarPedidos();
+    } catch (error) {
+      toast.error(error.response?.data || "Não foi possível aceitar a demanda.");
+    }
+  };
+
   const processarAtualizacaoStatus = async (pedidoId, novoStatus) => {
     try {
       await api.patch(`/api/demand/${pedidoId}/status`, { status: novoStatus });
@@ -108,8 +137,9 @@ function DashboardProfissional() {
     if (!matchesTexto) return false;
 
     if (abaAtiva === "NOVO") return s === "ABERTO";
+    if (abaAtiva === "PAGAMENTO") return s === "AGUARDANDO_PAGAMENTO";
     if (abaAtiva === "ANDAMENTO") return s === "AGUARDANDO";
-    if (abaAtiva === "FINALIZADO") return s === "FECHADO" || s === "REJEITADO";
+    if (abaAtiva === "FINALIZADO") return s === "FECHADO" || s === "REJEITADO" || s === "EXPIRADO";
     return true;
   });
 
@@ -117,8 +147,9 @@ function DashboardProfissional() {
     return pedidos.filter((p) => {
       const s = String(p.demandStatus || '').toUpperCase();
       if (statusAlvo === "ABERTO") return s === "ABERTO";
+      if (statusAlvo === "PAGAMENTO") return s === "AGUARDANDO_PAGAMENTO";
       if (statusAlvo === "AGUARDANDO") return s === "AGUARDANDO";
-      if (statusAlvo === "FINALIZADO") return s === "FECHADO" || s === "REJEITADO";
+      if (statusAlvo === "FINALIZADO") return s === "FECHADO" || s === "REJEITADO" || s === "EXPIRADO";
       return false;
     }).length;
   };
@@ -132,11 +163,21 @@ function DashboardProfissional() {
             <p>Olá, <strong>{usuarioLogado?.name}</strong>. Veja como está sua agenda.</p>
 
             {dadosPerfil && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', background: '#fff', padding: '6px 14px', borderRadius: '50px', width: 'fit-content', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}>
-                <i className="bi bi-star-fill" style={{ color: dadosPerfil.rating ? '#ffc107' : '#ccc' }}></i>
-                <span style={{ fontSize: '14px', color: '#333', fontWeight: '700' }}>
-                  Sua Reputação: {dadosPerfil.rating !== null && dadosPerfil.rating !== undefined ? dadosPerfil.rating.toFixed(1) : "Sem avaliação"}
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', padding: '6px 14px', borderRadius: '50px', width: 'fit-content', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}>
+                  <i className="bi bi-star-fill" style={{ color: dadosPerfil.rating ? '#ffc107' : '#ccc' }}></i>
+                  <span style={{ fontSize: '14px', color: '#333', fontWeight: '700' }}>
+                    Sua Reputação: {dadosPerfil.rating !== null && dadosPerfil.rating !== undefined ? dadosPerfil.rating.toFixed(1) : "Sem avaliação"}
+                  </span>
+                </div>
+                {dadosPerfil.verified && (
+                  <span style={{ background:'#eaf3ff', color:'#2563eb', padding:'6px 12px', borderRadius:'50px', fontSize:'13px', fontWeight:800 }}>
+                    <i className="bi bi-patch-check-fill"></i> {dadosPerfil.activePlanName || 'Verificado'}
+                  </span>
+                )}
+                <button type="button" onClick={() => navigate('/planos')} style={{ border:'0', background:'#111827', color:'#fff', padding:'7px 13px', borderRadius:'50px', fontWeight:700, cursor:'pointer' }}>
+                  <i className="bi bi-award"></i> {dadosPerfil.verified ? 'Gerenciar plano' : 'Ver planos'}
+                </button>
               </div>
             )}
           </div>
@@ -153,6 +194,14 @@ function DashboardProfissional() {
           >
             <h3>{contagem("ABERTO")}</h3>
             <span>Novas Solicitações</span>
+          </div>
+          <div
+            className={`stat-card active ${abaAtiva === "PAGAMENTO" ? "stat-active" : ""}`}
+            onClick={() => setAbaAtiva("PAGAMENTO")}
+            style={{ cursor: "pointer" }}
+          >
+            <h3>{contagem("PAGAMENTO")}</h3>
+            <span>Aguardando Pagamento</span>
           </div>
           <div
             className={`stat-card active ${abaAtiva === "ANDAMENTO" ? "stat-active" : ""}`}
@@ -198,6 +247,9 @@ function DashboardProfissional() {
             <button className={`tab-btn ${abaAtiva === "NOVO" ? "active" : ""}`} onClick={() => setAbaAtiva("NOVO")}>
               Novas <span className="tab-count">{contagem("ABERTO")}</span>
             </button>
+            <button className={`tab-btn ${abaAtiva === "PAGAMENTO" ? "active" : ""}`} onClick={() => setAbaAtiva("PAGAMENTO")}>
+              Pagamento <span className="tab-count">{contagem("PAGAMENTO")}</span>
+            </button>
             <button className={`tab-btn ${abaAtiva === "ANDAMENTO" ? "active" : ""}`} onClick={() => setAbaAtiva("ANDAMENTO")}>
               Em Andamento <span className="tab-count">{contagem("AGUARDANDO")}</span>
             </button>
@@ -235,17 +287,22 @@ function DashboardProfissional() {
                       <DemandFotos demanda={p} modo="indicador" />
                     </div>
 
-                    {(String(p.demandStatus).toUpperCase() === "ABERTO" || String(p.demandStatus).toUpperCase() === "AGUARDANDO") && (
+                    {(["ABERTO", "AGUARDANDO_PAGAMENTO", "AGUARDANDO"].includes(String(p.demandStatus).toUpperCase())) && (
                       <div className="card-footer" onClick={(e) => e.stopPropagation()}>
                         {String(p.demandStatus).toUpperCase() === "ABERTO" && (
                           <>
-                            <button className="btn-action accept" onClick={(e) => solicitarConfirmacao(e, p.id, "AGUARDANDO", "aceitar esta solicitação de serviço")}>
+                            <button className="btn-action accept" onClick={(e) => abrirAceite(e, p)}>
                               <i className="bi bi-check-lg"></i> Aceitar
                             </button>
                             <button className="btn-action decline" onClick={(e) => solicitarConfirmacao(e, p.id, "REJEITADO", "recusar esta solicitação de serviço")}>
                               <i className="bi bi-x-lg"></i> Recusar
                             </button>
                           </>
+                        )}
+                        {String(p.demandStatus).toUpperCase() === "AGUARDANDO_PAGAMENTO" && (
+                          <button className="btn-action details" style={{ width: "100%" }} onClick={() => setPedidoDetalhado(p)}>
+                            <i className="bi bi-hourglass-split"></i> Aguardando pagamento do cliente
+                          </button>
                         )}
                         {String(p.demandStatus).toUpperCase() === "AGUARDANDO" && (
                           <button className="btn-action details" style={{ width: "100%" }} onClick={() => setPedidoDetalhado(p)}>
@@ -288,7 +345,7 @@ function DashboardProfissional() {
               <div style={{ marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
                 {String(pedidoDetalhado.demandStatus).toUpperCase() === 'ABERTO' && (
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button className="btn-action accept" style={{ flex: 1 }} onClick={(e) => { setPedidoDetalhado(null); solicitarConfirmacao(e, pedidoDetalhado.id, "AGUARDANDO", "aceitar esta solicitação de serviço"); }}>Aceitar Serviço</button>
+                    <button className="btn-action accept" style={{ flex: 1 }} onClick={(e) => abrirAceite(e, pedidoDetalhado)}>Aceitar Serviço</button>
                     <button className="btn-action decline" style={{ flex: 1 }} onClick={(e) => { setPedidoDetalhado(null); solicitarConfirmacao(e, pedidoDetalhado.id, "REJEITADO", "recusar esta solicitação de serviço"); }}>Recusar</button>
                   </div>
                 )}
@@ -307,6 +364,33 @@ function DashboardProfissional() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {aceite.visivel && (
+        <div className="modal-overlay" style={{ zIndex: 1090 }}>
+          <div className="modal-container" style={{ maxWidth: '430px', padding: '26px' }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>Aceitar serviço</h3>
+            <p style={{ color:'#64748b', fontSize:'14px', lineHeight:1.5 }}>
+              Defina o valor final que será apresentado ao cliente no checkout.
+            </p>
+            <form onSubmit={confirmarAceite}>
+              <label style={{ display:'block', fontSize:'13px', fontWeight:700, marginBottom:6 }}>Valor final (R$)</label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={aceite.valor}
+                onChange={(e) => setAceite(prev => ({ ...prev, valor: e.target.value }))}
+                autoFocus
+                style={{ width:'100%', boxSizing:'border-box', padding:'12px', border:'1px solid #dbe2ea', borderRadius:10, fontSize:16 }}
+              />
+              <div style={{ display:'flex', gap:10, marginTop:20 }}>
+                <button type="button" className="btn-cancelar" style={{ flex:1, padding:11 }} onClick={() => setAceite({ visivel:false, pedidoId:null, valor:"" })}>Cancelar</button>
+                <button type="submit" className="btn-confirmar" style={{ flex:1, padding:11 }}>Aceitar e enviar para pagamento</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

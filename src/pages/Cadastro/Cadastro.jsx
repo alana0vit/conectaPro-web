@@ -79,7 +79,7 @@ const Cadastro = () => {
         phone: telefoneLimpo,
         userType: tipoPerfil,
         registryId: documentoLimpo,
-        companyName: tipoPerfil === "PROFESSIONAL" ? data.companyName?.trim() : null,
+        enterprise: tipoPerfil === "PROFESSIONAL" ? data.companyName?.trim() : null,
         categoriesIds: tipoPerfil === "PROFESSIONAL" && data.categoryId ? [Number(data.categoryId)] : [],
         address: {
           street: data.street,
