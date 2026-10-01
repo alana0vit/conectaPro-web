@@ -131,6 +131,7 @@ function EditarPerfil() {
 
       const usuarioPayload = {
         name: data.name,
+        enterprise: usuarioAtual.enterprise || null,
         email: data.email,
         password: data.password,
         birthDate: dataFormatada,
