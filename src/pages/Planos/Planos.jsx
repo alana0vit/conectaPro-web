@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../services/api";
+import { extrairMensagemErro } from "../../utils/errorUtils";
 import "./Planos.css";
 
 const moeda = (valor) =>
@@ -40,7 +41,7 @@ function Planos() {
       if (!checkoutUrl) throw new Error("Checkout não retornado.");
       window.location.href = checkoutUrl.startsWith("http") ? checkoutUrl : `${import.meta.env.VITE_API_URL || "http://localhost:8080"}${checkoutUrl}`;
     } catch (error) {
-      toast.error(error.response?.data || "Não foi possível iniciar a contratação.");
+      toast.error(extrairMensagemErro(error, "Não foi possível iniciar a contratação."));
       setContratando(null);
     }
   };

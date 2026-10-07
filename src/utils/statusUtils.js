@@ -7,6 +7,11 @@ const STATUS_MAP = {
   EXPIRADO: { labelProfissional: 'Expirada', labelCliente: 'Expirada', classe: 'rejected' },
 };
 
+export function contatoLiberado(status) {
+  const s = String(status || '').toUpperCase();
+  return s === 'AGUARDANDO' || s === 'FECHADO';
+}
+
 export function traduzirStatus(status) {
   const entry = STATUS_MAP[String(status || '').toUpperCase()];
   return entry ? entry.labelProfissional : String(status || '');

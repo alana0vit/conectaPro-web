@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import DetalhesSolicitacao from '../DetalhesSolicitacao/DetalhesSolicitacao';
-import { traduzirStatusCliente, getStatusClass } from '../../utils/statusUtils';
+import { traduzirStatusCliente, getStatusClass, contatoLiberado } from '../../utils/statusUtils';
+import { extrairMensagemErro } from '../../utils/errorUtils';
 import DemandInfoBadges from '../../components/DemandInfoBadges';
 import DemandFotos from '../../components/DemandFotos';
 import './DashboardCliente.css';
@@ -91,7 +92,7 @@ function DashboardCliente() {
       window.location.href = checkoutUrl.startsWith("http") ? checkoutUrl : `${import.meta.env.VITE_API_URL || "http://localhost:8080"}${checkoutUrl}`;
     } catch (error) {
       console.error("Erro ao iniciar pagamento:", error);
-      toast.error(error.response?.data || "Não foi possível iniciar o pagamento.");
+      toast.error(extrairMensagemErro(error, "Não foi possível iniciar o pagamento."));
     }
   };
 
@@ -331,7 +332,7 @@ function DashboardCliente() {
                       {pedido.professionalId?.name && (
                         <p className="row-item-professional-meta">
                           <i className="bi bi-person-badge"></i> Profissional: <strong>{pedido.professionalId.name}</strong>
-                          {pedido.professionalId.phone && (
+                          {contatoLiberado(pedido.demandStatus) && pedido.professionalId.phone && (
                             <span className="phone-sub-span">
                               <i className="bi bi-telephone"></i> {pedido.professionalId.phone}
                             </span>
@@ -414,7 +415,10 @@ function DashboardCliente() {
                   <p className="field-text-normal">
                     <strong>{pedidoDetalhado.professionalId.name}</strong>
                     <span className="phone-sub-span">
-                      <i className="bi bi-telephone"></i> {pedidoDetalhado.professionalId.phone || 'Sem telefone'}
+                      <i className="bi bi-telephone"></i>{' '}
+                      {contatoLiberado(pedidoDetalhado.demandStatus)
+                        ? pedidoDetalhado.professionalId.phone || 'Sem telefone'
+                        : 'Disponível após o pagamento'}
                     </span>
                   </p>
                 </div>
