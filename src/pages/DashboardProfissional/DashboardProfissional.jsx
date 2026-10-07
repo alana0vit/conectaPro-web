@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../services/api";
+import { extrairMensagemErro } from "../../utils/errorUtils";
 import DetalhesSolicitacao from "../DetalhesSolicitacao/DetalhesSolicitacao";
 import { traduzirStatus, getStatusClass } from "../../utils/statusUtils";
 import DemandInfoBadges from "../../components/DemandInfoBadges";
@@ -95,7 +96,7 @@ function DashboardProfissional() {
       setAceite({ visivel: false, pedidoId: null, valor: "" });
       await buscarPedidos();
     } catch (error) {
-      toast.error(error.response?.data || "Não foi possível aceitar a demanda.");
+      toast.error(extrairMensagemErro(error, "Não foi possível aceitar a demanda."));
     }
   };
 
