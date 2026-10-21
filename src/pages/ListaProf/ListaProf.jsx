@@ -10,6 +10,10 @@ import "./ListaProf.css";
 const INTERVALO_REFRESH = 30_000;
 const ITENS_POR_PAGINA = 5;
 
+// Prioridade do plano na lista (Ouro > Prata > Bronze > sem plano). Antes de ordenar por nota.
+const PESO_PLANO = { Ouro: 3, Prata: 2, Bronze: 1 };
+const pesoPlano = (prof) => PESO_PLANO[prof.activePlanName] || (prof.verified ? 1 : 0);
+
 function ListaProf() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,16 +35,11 @@ function ListaProf() {
     ultimosFiltrosRef.current = filtros;
 
     try {
-      let response;
-      const temFiltros = Object.values(filtros).some(
-        (v) => v !== undefined && v !== "",
+      // Sempre /search (sem filtros devolve todos os profissionais). Parâmetros vazios são removidos.
+      const params = Object.fromEntries(
+        Object.entries(filtros).filter(([, v]) => v !== undefined && v !== ""),
       );
-
-      if (temFiltros) {
-        response = await api.get("/api/user/search", { params: filtros });
-      } else {
-        response = await api.get("/api/user");
-      }
+      const response = await api.get("/api/user/search", { params });
 
       const apenasProfissionais = response.data.filter(
         (u) => u.userType === "PROFESSIONAL",
@@ -178,6 +177,8 @@ function ListaProf() {
       return true;
     })
     .sort((a, b) => {
+      const porPlano = pesoPlano(b) - pesoPlano(a);
+      if (porPlano !== 0) return porPlano;
       const notaA = a.rating !== null && a.rating !== undefined ? a.rating : -1;
       const notaB = b.rating !== null && b.rating !== undefined ? b.rating : -1;
       return notaB - notaA;
@@ -391,7 +392,14 @@ function ListaProf() {
                           </div>
 
                           <div className="dados-prof-horizontal">
-                            <h3 className="nome-profissional">{prof.name}</h3>
+                            <h3 className="nome-profissional">
+                              {prof.name}
+                              {prof.verified && (
+                                <span className="selo-verificado" title={`Profissional verificado${prof.activePlanName ? ` (${prof.activePlanName})` : ""}`}>
+                                  <i className="bi bi-patch-check-fill"></i> {prof.activePlanName || "Verificado"}
+                                </span>
+                              )}
+                            </h3>
 
                             <p className="localizacao-prof">
                               <i className="bi bi-geo-alt"></i> {localizacao}
