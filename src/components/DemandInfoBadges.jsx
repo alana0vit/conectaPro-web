@@ -36,6 +36,13 @@ function DemandInfoBadges({ demanda }) {
         </span>
       )}
 
+      {demanda?.code && (
+        <span className="demand-code-tag">
+          <i className="bi bi-hash"></i>
+          {demanda.code}
+        </span>
+      )}
+
       <div className="demand-meta-row">
         <span className={`demand-meta-item ${!demanda?.suggestedValue ? 'empty' : ''}`}>
           <i className="bi bi-cash-coin"></i>
