@@ -14,7 +14,8 @@ function EditarPerfil() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [fotoPreview, setFotoPreview] = useState(null);
-  const [uploadingFoto, setUploadingFoto] = useState(false);
+  const [confirmarRemocaoFoto, setConfirmarRemocaoFoto] = useState(false);
+  const [removendoFoto, setRemovendoFoto] = useState(false); const [uploadingFoto, setUploadingFoto] = useState(false);
   const fotoInputRef = useRef(null);
 
   const { register, handleSubmit, reset, setValue } = useForm();
@@ -120,6 +121,23 @@ function EditarPerfil() {
     }
   };
 
+  const handleRemoverFoto = async () => {
+    try {
+      setRemovendoFoto(true);
+      const res = await api.delete(`/api/user/${userId}/photo`);
+      const usuarioAtualizado = res.data || {};
+      setUsuarioAtual(usuarioAtualizado);
+      setFotoPreview(usuarioAtualizado.photo ? getImageUrl(usuarioAtualizado.photo) : null);
+      setConfirmarRemocaoFoto(false);
+      toast.success("Foto de perfil removida.");
+    } catch (error) {
+      console.error("Erro ao remover foto:", error);
+      toast.error("Não foi possível remover a foto. Tente novamente.");
+    } finally {
+      setRemovendoFoto(false);
+    }
+  };
+
   const alternarVisibilidadeSenha = () => {
     setMostrarSenha(!mostrarSenha);
   };
@@ -185,31 +203,31 @@ function EditarPerfil() {
       <div className="editar-perfil-wrapper">
         <div className="editar-perfil-card">
           <header className="perfil-header-info">
-            <div
-              className="perfil-avatar-wrapper"
-              onClick={() => fotoInputRef.current.click()}
-              title="Clique para alterar a foto"
-            >
+            <div className="perfil-avatar-wrapper" onClick={() => fotoInputRef.current.click()} title="Clique para alterar a foto">
               {fotoPreview ? (
-                <img
-                  src={fotoPreview}
-                  alt="Foto de perfil"
-                  className="perfil-avatar-img"
-                />
+                <img src={fotoPreview} alt="Foto de perfil" className="perfil-avatar-img" />
               ) : (
                 <div className="perfil-avatar-placeholder">
-                  <span>
-                    {usuarioAtual?.name?.charAt(0).toUpperCase() || "?"}
-                  </span>
+                  <span>{usuarioAtual?.name?.charAt(0).toUpperCase() || "?"}</span>
                 </div>
               )}
               <div className="perfil-avatar-overlay">
-                {uploadingFoto ? (
-                  <i className="bi bi-arrow-repeat spin"></i>
-                ) : (
-                  <i className="bi bi-camera-fill"></i>
-                )}
+                {uploadingFoto ? <i className="bi bi-arrow-repeat spin"></i> : <i className="bi bi-camera-fill"></i>}
               </div>
+              {fotoPreview && !uploadingFoto && !removendoFoto && (
+                <button
+                  type="button"
+                  className="perfil-avatar-remover"
+                  title="Remover foto"
+                  aria-label="Remover foto de perfil"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmarRemocaoFoto(true);
+                  }}
+                >
+                  <i className="bi bi-x-lg"></i>
+                </button>
+              )}
             </div>
 
             <input
@@ -436,6 +454,31 @@ function EditarPerfil() {
           </form>
         </div>
       </div>
+      {confirmarRemocaoFoto && (
+        <div className="modal-overlay" onClick={() => !removendoFoto && setConfirmarRemocaoFoto(false)}>
+          <div className="modal-container" style={{ maxWidth: '420px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: '44px', color: '#dc2626', marginBottom: '10px' }}>
+              <i className="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <h3 style={{ margin: '0 0 10px 0', color: '#0f172a' }}>Remover Foto de Perfil?</h3>
+            <p style={{ color: '#64748b', fontSize: '14px', lineHeight: 1.5, margin: '0 0 20px 0' }}>
+              Sua foto atual será removida permanentemente. Você poderá enviar uma nova imagem quando quiser.
+            </p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button" disabled={removendoFoto}
+                onClick={() => setConfirmarRemocaoFoto(false)}
+                style={{ flex: 1, padding: '11px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}
+              >Cancelar</button>
+              <button
+                type="button" disabled={removendoFoto}
+                onClick={handleRemoverFoto}
+                style={{ flex: 1, padding: '11px', borderRadius: '8px', border: 'none', background: '#dc2626', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+              >{removendoFoto ? 'Removendo...' : 'Sim, Remover'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
