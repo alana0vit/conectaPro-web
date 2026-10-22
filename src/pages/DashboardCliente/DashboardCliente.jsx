@@ -18,6 +18,8 @@ function DashboardCliente() {
   const [abaAtiva, setAbaAtiva] = useState('PENDENTE');
   const [pedidoDetalhado, setPedidoDetalhado] = useState(null);
   const [buscaTexto, setBuscaTexto] = useState('');
+  const [confirmacaoExclusao, setConfirmacaoExclusao] = useState(null);
+  const [excluindoDemanda, setExcluindoDemanda] = useState(false);
 
   const [pedidoParaAvaliar, setPedidoParaAvaliar] = useState(null);
   const [estrelas, setEstrelas] = useState(5);
@@ -70,6 +72,23 @@ function DashboardCliente() {
       setAvaliacoes(mapa);
     } catch (err) {
       console.error("Erro ao carregar avaliações:", err);
+    }
+  };
+
+  const confirmarExclusao = async () => {
+    if (!confirmacaoExclusao) return;
+    try {
+      setExcluindoDemanda(true);
+      await api.delete(`/api/demand/${confirmacaoExclusao.id}`);
+      setPedidos((prev) => prev.filter((p) => p.id !== confirmacaoExclusao.id));
+      toast.success('Solicitação excluída com sucesso.');
+      setConfirmacaoExclusao(null);
+      setPedidoDetalhado(null);
+    } catch (error) {
+      console.error('Erro ao excluir demanda:', error);
+      toast.error(extrairMensagemErro(error, 'Não foi possível excluir a solicitação.'));
+    } finally {
+      setExcluindoDemanda(false);
     }
   };
 
@@ -458,20 +477,29 @@ function DashboardCliente() {
                 )}
 
                 {String(pedidoDetalhado.demandStatus || '').toUpperCase() === 'AGUARDANDO_PAGAMENTO' && (
-                <div className="payment-pending-box">
-                  <div>
-                    <strong>Pagamento necessário</strong>
-                    <p>O profissional aceitou a solicitação e definiu o valor final.</p>
-                    <span>Valor: <b>{Number(pedidoDetalhado.finalValue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</b></span>
+                  <div className="payment-pending-box">
+                    <div>
+                      <strong>Pagamento necessário</strong>
+                      <p>O profissional aceitou a solicitação e definiu o valor final.</p>
+                      <span>Valor: <b>{Number(pedidoDetalhado.finalValue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</b></span>
+                    </div>
+                    <button className="btn-modal-submit-primary" onClick={() => iniciarPagamento(pedidoDetalhado)}>
+                      <i className="bi bi-credit-card"></i> Ir para pagamento
+                    </button>
                   </div>
-                  <button className="btn-modal-submit-primary" onClick={() => iniciarPagamento(pedidoDetalhado)}>
-                    <i className="bi bi-credit-card"></i> Ir para pagamento
-                  </button>
-                </div>
-              )}
+                )}
 
-              {String(pedidoDetalhado.demandStatus || '').toUpperCase() === 'AGUARDANDO' && (
+                {String(pedidoDetalhado.demandStatus || '').toUpperCase() === 'AGUARDANDO' && (
                   <DetalhesSolicitacao demanda={pedidoDetalhado} modo="CLIENTE" />
+                )}
+                {['ABERTO', 'REJEITADO', 'EXPIRADO'].includes(String(pedidoDetalhado.demandStatus || '').toUpperCase()) && (
+                  <button
+                    type="button"
+                    className="btn-modal-delete-secondary"
+                    onClick={() => setConfirmacaoExclusao(pedidoDetalhado)}
+                  >
+                    <i className="bi bi-trash"></i> Excluir Solicitação
+                  </button>
                 )}
               </div>
             </div>
@@ -547,6 +575,42 @@ function DashboardCliente() {
                 ) : "Submeter Avaliação"}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+      {confirmacaoExclusao && (
+        <div
+          className="modal-overlay-blur"
+          style={{ zIndex: 10000 }}
+          onClick={() => !excluindoDemanda && setConfirmacaoExclusao(null)}
+        >
+          <div
+            className="modal-sheet-container"
+            style={{ maxWidth: '420px', padding: '28px 24px', textAlign: 'center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: '44px', color: '#dc2626', marginBottom: '10px' }}>
+              <i className="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <h3 style={{ margin: '0 0 10px 0', color: '#0f172a', fontSize: '18px' }}>
+              Excluir Solicitação?
+            </h3>
+            <p style={{ color: '#64748b', fontSize: '14px', lineHeight: 1.5, margin: '0 0 20px 0' }}>
+              Você tem certeza de que deseja excluir <strong>"{confirmacaoExclusao.title}"</strong>?
+              Essa ação é permanente e não poderá ser desfeita.
+            </p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button" disabled={excluindoDemanda}
+                onClick={() => setConfirmacaoExclusao(null)}
+                style={{ flex: 1, padding: '11px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}
+              >Cancelar</button>
+              <button
+                type="button" disabled={excluindoDemanda}
+                onClick={confirmarExclusao}
+                style={{ flex: 1, padding: '11px', borderRadius: '8px', border: 'none', background: '#dc2626', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+              >{excluindoDemanda ? 'Excluindo...' : 'Sim, Excluir'}</button>
+            </div>
           </div>
         </div>
       )}
