@@ -7,6 +7,8 @@ import { traduzirStatusCliente, getStatusClass, contatoLiberado } from '../../ut
 import { extrairMensagemErro } from '../../utils/errorUtils';
 import DemandInfoBadges from '../../components/DemandInfoBadges';
 import DemandFotos from '../../components/DemandFotos';
+import FotosPicker from '../../components/FotosPicker';
+import usePagamentoRetorno from '../../utils/usePagamentoRetorno';
 import './DashboardCliente.css';
 
 const INTERVALO_REFRESH = 30_000;
@@ -26,6 +28,7 @@ function DashboardCliente() {
   const [comentario, setComentario] = useState('');
   const [anonimo, setAnonimo] = useState(false);
   const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false);
+  const [fotosAvaliacao, setFotosAvaliacao] = useState([]);
 
   const [avaliacoes, setAvaliacoes] = useState({});
 
@@ -97,6 +100,13 @@ function DashboardCliente() {
     buscarAvaliacoes();
   }, [clienteId]);
 
+  // Volta do checkout: recarrega os pedidos e abre a aba "Em andamento" se foi aprovado.
+  usePagamentoRetorno((status) => {
+    if (status === 'aprovado') setAbaAtiva('ANDAMENTO');
+    else setAbaAtiva('PAGAMENTO');
+    buscarMeusPedidos(true);
+  });
+
   useEffect(() => {
     if (!clienteId) return;
     const id = setInterval(() => buscarMeusPedidos(true), INTERVALO_REFRESH);
@@ -147,6 +157,22 @@ function DashboardCliente() {
 
       await api.put(`/api/rating/${ratingIdGerado}`, payloadConcluir);
 
+      // Fotos são opcionais: se falharem, a avaliação já foi registrada e o cliente é avisado.
+      if (fotosAvaliacao.length > 0) {
+        try {
+          const formData = new FormData();
+          fotosAvaliacao.forEach((foto) => formData.append('imagens', foto));
+          await api.post(`/api/rating/${ratingIdGerado}/images`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+        } catch (erroFotos) {
+          console.error('Erro ao anexar fotos da avaliação:', erroFotos);
+          toast.warn(
+            extrairMensagemErro(erroFotos, 'A avaliação foi enviada, mas as fotos não puderam ser anexadas.')
+          );
+        }
+      }
+
       setAvaliacoes(prev => ({ ...prev, [pedidoParaAvaliar.id]: Number(estrelas) }));
 
       toast.success("Avaliação enviada com sucesso! Obrigado pelo seu feedback.");
@@ -155,6 +181,7 @@ function DashboardCliente() {
       setComentario('');
       setEstrelas(5);
       setAnonimo(false);
+      setFotosAvaliacao([]);
     } catch (err) {
       console.error("Erro ao processar avaliação:", err);
       toast.error("Ocorreu uma falha ao registrar sua avaliação no banco.");
@@ -548,6 +575,16 @@ function DashboardCliente() {
                   required
                   className="premium-textarea-input"
                 ></textarea>
+              </div>
+
+              <div className="meta-field-group">
+                <label>FOTOS (OPCIONAL)</label>
+                <FotosPicker
+                  arquivos={fotosAvaliacao}
+                  onChange={setFotosAvaliacao}
+                  max={3}
+                  disabled={enviandoAvaliacao}
+                />
               </div>
 
               <div className="anonymous-checkbox-row-wrapper">

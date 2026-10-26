@@ -1,7 +1,9 @@
 import { useState } from 'react'; 
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify'; 
-import api from '../../services/api'; 
+import BackButton from '../../components/BackButton';
+import api from '../../services/api';
+import { extrairMensagemErro } from '../../utils/errorUtils';
 import './EsqueceuSenha.css';
 
 const EsqueceuSenha = () => {
@@ -14,11 +16,13 @@ const EsqueceuSenha = () => {
 
     try {
       
-      await api.post('/auth/forgot-password', { email });
-      
-      toast.success('Link de recuperação enviado para seu e-mail!');
-    } catch{
-      toast.error('Erro ao enviar e-mail. Verifique se o e-mail está cadastrado.');
+      await api.post('/auth/forgot-password', { email: email.trim() });
+
+      // O servidor responde igual exista o e-mail ou não (segurança): a mensagem também é neutra.
+      toast.success('Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha em instantes. Confira também o spam.');
+      setEmail('');
+    } catch (error) {
+      toast.error(extrairMensagemErro(error, 'Não foi possível enviar o e-mail agora. Tente novamente em instantes.'));
     } finally {
       setLoading(false);
     }
@@ -27,6 +31,7 @@ const EsqueceuSenha = () => {
   return (
     <div className="esqueceu-senha-container">
       <div className="esqueceu-senha-card">
+        <BackButton to="/login" label="Voltar para o login" />
         <h2>Recuperar Senha</h2>
         <p>Digite seu e-mail abaixo. Enviaremos um link para você definir uma nova senha.</p>
 

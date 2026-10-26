@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import imagemBusca from "../../assets/ImgLista1.jpg";
 import api from "../../services/api";
+import BackButton from "../../components/BackButton";
 import HistoricoAvaliacoes from "../../components/HistoricoAvaliacoes";
 import { getImageUrl } from "../../utils/imageUtils";
 import "./ListaProf.css";
@@ -27,6 +28,9 @@ function ListaProf() {
   const [modalAvaliacoes, setModalAvaliacoes] = useState(null);
   const [fotoExpandida, setFotoExpandida] = useState(null);
   const ultimosFiltrosRef = useRef({});
+  // Última posição obtida: evita pedir o GPS de novo a cada busca (era lento).
+  const posicaoRef = useRef(null);
+  const OPCOES_GPS = { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 };
 
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [usandoLocalizacao, setUsandoLocalizacao] = useState(false);
@@ -52,7 +56,7 @@ function ListaProf() {
   };
 
   useEffect(() => {
-    buscarProfissionais();
+    // A primeira busca já é feita pelo efeito dos filtros (abaixo); chamar aqui duplicava a consulta.
     api.get("/api/category")
       .then((res) => setCategorias(res.data))
       .catch((err) => console.error(err));
@@ -63,15 +67,22 @@ function ListaProf() {
     if (e && e.preventDefault) e.preventDefault();
 
     if (usandoLocalizacao) {
-      if (navigator.geolocation) {
+      const buscarComPosicao = (coords) => {
+        posicaoRef.current = coords;
+        buscarProfissionais({
+          name: termoBusca,
+          categoryId: categoriaSelecionada || undefined,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          radiusKm: raioKm,
+        });
+      };
+
+      if (posicaoRef.current) {
+        buscarComPosicao(posicaoRef.current);
+      } else if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((pos) => {
-          buscarProfissionais({
-            name: termoBusca,
-            categoryId: categoriaSelecionada || undefined,
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            radiusKm: raioKm,
-          });
+          buscarComPosicao({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
         }, (error) => {
           console.error("Erro geolocalização:", error);
           toast.error("Não foi possível obter sua localização. Busca realizada sem GPS.");
@@ -82,7 +93,7 @@ function ListaProf() {
           });
           setUsandoLocalizacao(false); // Desativa o visual do GPS
         },
-          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 });
+          OPCOES_GPS);
       } else {
         toast.error("A geolocalização não é suportada pelo seu navegador.");
         buscarProfissionais({
@@ -134,7 +145,8 @@ function ListaProf() {
       }
 
       navigator.geolocation.getCurrentPosition(
-        () => {
+        (pos) => {
+          posicaoRef.current = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
           setUsandoLocalizacao(true);
           // A busca será disparada pelo useEffect quando o estado 'usandoLocalizacao' for atualizado.
         },
@@ -143,7 +155,7 @@ function ListaProf() {
           toast.error("Não foi possível obter sua localização. Verifique as permissões do seu navegador.");
           setUsandoLocalizacao(false);
         },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        OPCOES_GPS
       );
     }
   };
@@ -220,6 +232,9 @@ function ListaProf() {
 
   return (
     <div className="pagina-lista-profissionais">
+      <div className="voltar-barra">
+        <BackButton fallback="/dashboard-cliente" />
+      </div>
       {reassignDemandId && (
         <div style={{ background: "#d4edda", color: "#155724", padding: "12px", textAlign: "center", fontWeight: "600", borderBottom: "1px solid #c3e6cb" }}>
           <i className="bi bi-info-circle-fill"></i> Modo de Reatribuição Ativo: Escolha um novo profissional abaixo para assumir o seu chamado recusado.

@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from '../services/api';
+import { getImageUrl } from '../utils/imageUtils';
 import './HistoricoAvaliacoes.css';
 
 const ITENS_POR_PAGINA = 10;
+
+// O back devolve os nomes dos arquivos em imgUrl; monta as URLs para exibir.
+const fotosDaAvaliacao = (av) =>
+  (Array.isArray(av.imgUrl) ? av.imgUrl : []).map(getImageUrl).filter(Boolean);
 
 function HistoricoAvaliacoes({ profissionalId, profissionalNome, onClose }) {
   const [avaliacoes, setAvaliacoes] = useState([]);
@@ -64,7 +69,7 @@ function HistoricoAvaliacoes({ profissionalId, profissionalNome, onClose }) {
                   <i key={s} className={`bi ${s <= Math.round(Number(media)) ? 'bi-star-fill' : 'bi-star'}`}></i>
                 ))}
               </div>
-              <div className="historico-total-label">{avaliacoes.length} avaliação{avaliacoes.length !== 1 ? 'ões' : ''}</div>
+              <div className="historico-total-label">{avaliacoes.length} {avaliacoes.length === 1 ? 'avaliação' : 'avaliações'}</div>
             </div>
           </div>
         )}
@@ -125,10 +130,12 @@ function HistoricoAvaliacoes({ profissionalId, profissionalNome, onClose }) {
                     <p className="historico-comentario">{av.description}</p>
                   )}
 
-                  {av.photos && av.photos.length > 0 && (
+                  {fotosDaAvaliacao(av).length > 0 && (
                     <div className="historico-fotos">
-                      {av.photos.map((foto, j) => (
-                        <img key={j} src={foto} alt={`Foto ${j + 1}`} />
+                      {fotosDaAvaliacao(av).map((url, j) => (
+                        <a key={j} href={url} target="_blank" rel="noreferrer">
+                          <img src={url} alt={`Foto ${j + 1}`} loading="lazy" />
+                        </a>
                       ))}
                     </div>
                   )}
