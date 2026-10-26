@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 import api from "../../services/api";
 import { extrairMensagemErro } from "../../utils/errorUtils";
 import { getImageUrl } from "../../utils/imageUtils";
@@ -242,6 +243,7 @@ function EditarDemanda() {
   return (
     <div className="secao-servicos-cinza" style={{ minHeight: "100vh", padding: "40px 20px" }}>
       <div className="editar-demanda-card">
+        <BackButton fallback="/dashboard-cliente" />
 
         <div className="editar-demanda-header">
           <h2>Editar Solicitação</h2>

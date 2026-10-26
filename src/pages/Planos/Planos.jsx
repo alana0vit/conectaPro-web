@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 import api from "../../services/api";
 import { extrairMensagemErro } from "../../utils/errorUtils";
 import "./Planos.css";
@@ -48,6 +49,9 @@ function Planos() {
 
   return (
     <div className="planos-page">
+      <div className="voltar-barra">
+        <BackButton fallback={usuario?.userType === "PROFESSIONAL" ? "/dashboard-profissional" : "/"} />
+      </div>
       <section className="planos-hero">
         <span className="planos-kicker">VERIFICAÇÃO CONECTAPRO</span>
         <h1>Escolha seu plano profissional</h1>

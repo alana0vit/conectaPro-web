@@ -1,25 +1,27 @@
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
+import ScrollToTop from "./components/ScrollToTop";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import Cadastro from "./pages/Cadastro/Cadastro";
-import DashboardCliente from "./pages/DashboardCliente/DashboardCliente";
-import DashboardProfissional from './pages/DashboardProfissional/DashboardProfissional';
-import EditarPerfil from "./pages/EditarPerfil/EditarPerfil";
-import EsqueceuSenha from "./pages/EsqueceuSenha/EsqueceuSenha";
-import FaleConosco from "./pages/FaleConosco/FaleConosco";
-import FAQ from "./pages/FAQ/FAQ";
+const Cadastro = lazy(() => import("./pages/Cadastro/Cadastro"));
+const DashboardCliente = lazy(() => import("./pages/DashboardCliente/DashboardCliente"));
+const DashboardProfissional = lazy(() => import("./pages/DashboardProfissional/DashboardProfissional"));
+const EditarPerfil = lazy(() => import("./pages/EditarPerfil/EditarPerfil"));
+const EsqueceuSenha = lazy(() => import("./pages/EsqueceuSenha/EsqueceuSenha"));
+const FaleConosco = lazy(() => import("./pages/FaleConosco/FaleConosco"));
+const FAQ = lazy(() => import("./pages/FAQ/FAQ"));
 import Home from "./pages/Home/Home";
-import ListaProf from "./pages/ListaProf/ListaProf";
-import Login from "./pages/Login/Login";
-import SolicServico from "./pages/SolicServico/SolicServico";
-import TermosDeUso from "./pages/TermosDeUso/TermosDeUso";
-import DetalhesSolicitacao from "./pages/DetalhesSolicitacao/DetalhesSolicitacao";
-import EditarDemanda from "./pages/EditarDemanda/EditarDemanda";
-import RedefinicaoSenha from "./pages/RedefinicaoSenha/RedefinicaoSenha";
-import Planos from "./pages/Planos/Planos";
+const ListaProf = lazy(() => import("./pages/ListaProf/ListaProf"));
+const Login = lazy(() => import("./pages/Login/Login"));
+const SolicServico = lazy(() => import("./pages/SolicServico/SolicServico"));
+const TermosDeUso = lazy(() => import("./pages/TermosDeUso/TermosDeUso"));
+const DetalhesSolicitacao = lazy(() => import("./pages/DetalhesSolicitacao/DetalhesSolicitacao"));
+const EditarDemanda = lazy(() => import("./pages/EditarDemanda/EditarDemanda"));
+const RedefinicaoSenha = lazy(() => import("./pages/RedefinicaoSenha/RedefinicaoSenha"));
+const Planos = lazy(() => import("./pages/Planos/Planos"));
 
 const RotaPrivadaCliente = ({ children }) => {
   const userStorage = localStorage.getItem("@ConectaPro:user");
@@ -48,8 +50,10 @@ const RotaPrivadaGeral = ({ children }) => {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Header />
-      
+
+      <Suspense fallback={<div className="pagina-carregando">Carregando...</div>}>
       <Routes>
         {/* Rotas Públicas */}
         <Route path="/" element={<Home />} />
@@ -74,6 +78,7 @@ function App() {
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      </Suspense>
 
       <Footer />
 

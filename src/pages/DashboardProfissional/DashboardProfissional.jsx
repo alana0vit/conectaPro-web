@@ -7,6 +7,7 @@ import DetalhesSolicitacao from "../DetalhesSolicitacao/DetalhesSolicitacao";
 import { traduzirStatus, getStatusClass } from "../../utils/statusUtils";
 import DemandInfoBadges from "../../components/DemandInfoBadges";
 import DemandFotos from '../../components/DemandFotos';
+import usePagamentoRetorno from "../../utils/usePagamentoRetorno";
 import "./DashboardProfissional.css";
 
 const INTERVALO_REFRESH = 30_000;
@@ -38,7 +39,11 @@ function DashboardProfissional() {
 
     try {
       if (!silencioso) setLoading(true);
-      const response = await api.get("/api/demand/user");
+      // As duas consultas são independentes: rodam juntas (antes uma esperava a outra).
+      const [response, resPerfil] = await Promise.all([
+        api.get("/api/demand/user"),
+        api.get(`/api/user/${profesionalId}`),
+      ]);
 
       const meusPedidos = response.data
         .filter((d) => {
@@ -48,8 +53,6 @@ function DashboardProfissional() {
         .sort((a, b) => b.id - a.id);
 
       setPedidos(meusPedidos);
-
-      const resPerfil = await api.get(`/api/user/${profesionalId}`);
       setDadosPerfil(resPerfil.data);
 
       return meusPedidos;
@@ -65,6 +68,11 @@ function DashboardProfissional() {
   useEffect(() => {
     buscarPedidos();
   }, [profesionalId]);
+
+  // Volta do checkout do plano: recarrega o perfil para mostrar o selo/plano ativo.
+  usePagamentoRetorno(() => {
+    buscarPedidos(true);
+  });
 
   useEffect(() => {
     if (!profesionalId) return;

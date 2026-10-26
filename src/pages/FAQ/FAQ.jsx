@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import BackButton from '../../components/BackButton';
 import './FAQ.css';
 
 const faqData = [
@@ -31,6 +32,7 @@ const FAQ = () => {
 
     return (
         <div className="faq-container">
+            <BackButton fallback="/" />
             <div className="faq-header">
                 <h2>Perguntas Frequentes</h2>
                 <p>Tire suas dúvidas sobre como o ConectaPro funciona.</p>

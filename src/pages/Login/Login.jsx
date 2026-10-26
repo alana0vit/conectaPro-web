@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 import api from "../../services/api";
 import "./Login.css";
 
@@ -42,6 +43,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
+        <BackButton to="/" label="Voltar para o início" />
         <h2>Login</h2>
         <p>Acesse sua conta para gerenciar seus serviços.</p>
 

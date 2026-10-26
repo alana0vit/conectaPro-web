@@ -3,7 +3,10 @@ import { Controller, useForm } from "react-hook-form";
 import { IMaskInput } from "react-imask";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 import api from "../../services/api";
+import { mascararCpf, mascararCpfCnpj, validarCpfCnpj, validarSomenteCpf } from "../../utils/documentUtils";
+import { MIN_NASCIMENTO_ISO, maxNascimentoISO, validarNascimento } from "../../utils/dateUtils";
 import "./Cadastro.css";
 
 const Cadastro = () => {
@@ -135,6 +138,7 @@ const Cadastro = () => {
     return (
       <div className="cadastro-container">
         <div className="escolha-perfil-card">
+          <BackButton to="/" label="Voltar para o início" />
           <h2 className="title-serif">Como deseja usar o ConectaPro?</h2>
           <div className="cards-container">
             <button className="perfil-card" onClick={() => setTipoPerfil("CLIENT")}>
@@ -167,6 +171,7 @@ const Cadastro = () => {
       )}
 
       <div className="form-card">
+        <BackButton onClick={() => setTipoPerfil(null)} label="Trocar tipo de perfil" />
         <div className="form-header">
           <div className="cadastro-avatar-wrapper" onClick={() => fotoInputRef.current.click()} title="Clique para adicionar uma foto">
             {fotoPreview ? (
@@ -230,19 +235,21 @@ const Cadastro = () => {
                   <Controller
                     name="documento"
                     control={control}
-                    rules={{ required: true }}
+                    rules={{ required: "Informe o CPF ou CNPJ", validate: validarCpfCnpj }}
                     render={({ field }) => (
-                      <IMaskInput
-                        {...field}
-                        mask={[
-                          { mask: '000.000.000-00' },
-                          { mask: '00.000.000/0000-00' }
-                        ]}
-                        onAccept={(value) => field.onChange(value)}
-                        placeholder="00.000.000/0000-00 ou 000.000.000-00"
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(mascararCpfCnpj(e.target.value))}
+                        onBlur={field.onBlur}
+                        className={errors.documento ? "input-error" : ""}
+                        placeholder="000.000.000-00 ou 00.000.000/0000-00"
                       />
                     )}
                   />
+                  {errors.documento && <span className="error-message">{errors.documento.message}</span>}
                 </div>
               ) : (
                 <div className="row">
@@ -251,15 +258,32 @@ const Cadastro = () => {
                     <Controller
                       name="documento"
                       control={control}
-                      rules={{ required: true }}
+                      rules={{ required: "Informe o CPF", validate: validarSomenteCpf }}
                       render={({ field }) => (
-                        <IMaskInput {...field} mask="000.000.000-00" onAccept={(value) => field.onChange(value)} placeholder="000.000.000-00" />
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="off"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(mascararCpf(e.target.value))}
+                          onBlur={field.onBlur}
+                          className={errors.documento ? "input-error" : ""}
+                          placeholder="000.000.000-00"
+                        />
                       )}
                     />
+                    {errors.documento && <span className="error-message">{errors.documento.message}</span>}
                   </div>
                   <div className="input-group w-50">
                     <label>Data de Nascimento</label>
-                    <input type="date" className="input-date-placeholder" {...register("birthDate", { required: true })} />
+                    <input
+                      type="date"
+                      className={`input-date-placeholder ${errors.birthDate ? "input-error" : ""}`}
+                      min={MIN_NASCIMENTO_ISO}
+                      max={maxNascimentoISO()}
+                      {...register("birthDate", { validate: validarNascimento })}
+                    />
+                    {errors.birthDate && <span className="error-message">{errors.birthDate.message}</span>}
                   </div>
                 </div>
               )}
@@ -279,7 +303,14 @@ const Cadastro = () => {
                   </div>
                   <div className="input-group w-50">
                     <label>Data de Nascimento</label>
-                    <input type="date" className="input-date-placeholder" {...register("birthDate", { required: true })} />
+                    <input
+                      type="date"
+                      className={`input-date-placeholder ${errors.birthDate ? "input-error" : ""}`}
+                      min={MIN_NASCIMENTO_ISO}
+                      max={maxNascimentoISO()}
+                      {...register("birthDate", { validate: validarNascimento })}
+                    />
+                    {errors.birthDate && <span className="error-message">{errors.birthDate.message}</span>}
                   </div>
                 </div>
               ) : (

@@ -1,0 +1,33 @@
+.btn-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 6px 4px;
+  margin: 0 0 12px;
+  color: #475569;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.btn-voltar:hover {
+  color: #007bff;
+  background-color: rgba(0, 123, 255, 0.08);
+}
+
+.btn-voltar:focus-visible {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Barra fina logo abaixo do cabeçalho, para páginas que ocupam a tela toda */
+.voltar-barra {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px 0;
+  box-sizing: border-box;
+}

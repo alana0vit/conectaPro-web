@@ -10,7 +10,8 @@ const Header = () => {
 
     const fazerLogout = () => {
         localStorage.removeItem('@ConectaPro:user');
-        navigate('/');
+        // replace: o botão "voltar" do navegador não leva de volta a uma tela logada.
+        navigate('/', { replace: true });
     };
 
     return (
@@ -28,6 +29,12 @@ const Header = () => {
                             {user.userType === 'CLIENT' && (
                                 <Link to="/lista-profissionais" className="nav-link">
                                     Serviços
+                                </Link>
+                            )}
+
+                            {user.userType === 'PROFESSIONAL' && (
+                                <Link to="/planos" className="nav-link">
+                                    Planos
                                 </Link>
                             )}
 

@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import BackButton from '../../components/BackButton';
 import api from '../../services/api';
+import { extrairMensagemErro } from '../../utils/errorUtils';
+import { hojeISO, paraInputDate } from '../../utils/dateUtils';
+import { mesclarImagens } from '../../utils/uploadUtils';
 import './SolicServico.css';
 
 function SolicServico() {
@@ -29,10 +33,25 @@ function SolicServico() {
   const usuarioLogado = userStorage ? JSON.parse(userStorage) : null;
   const clientId = usuarioLogado?.id;
 
-  const hoje = new Date().toISOString().split('T')[0];
+  const hoje = hojeISO();
   const maxDate = new Date();
   maxDate.setFullYear(maxDate.getFullYear() + 1);
-  const maxDateStr = maxDate.toISOString().split('T')[0];
+  const maxDateStr = paraInputDate(maxDate);
+
+  // Soma as novas fotos às já escolhidas (antes, escolher de novo apagava as anteriores).
+  const adicionarImagens = (e) => {
+    const novas = Array.from(e.target.files || []);
+    e.target.value = ''; // permite escolher o mesmo arquivo de novo depois de remover
+    if (novas.length === 0) return;
+
+    const { lista, avisos } = mesclarImagens(imagens, novas, { max: 5 });
+    avisos.forEach((aviso) => toast.warn(aviso));
+    setImagens(lista);
+    setPreviews((antigos) => {
+      antigos.forEach((src) => URL.revokeObjectURL(src));
+      return lista.map((f) => URL.createObjectURL(f));
+    });
+  };
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -108,18 +127,33 @@ function SolicServico() {
       navigate('/dashboard-cliente');
     } catch (error) {
       console.error('Erro ao criar demanda:', error);
-      toast.error('Erro ao enviar solicitação.');
+      toast.error(extrairMensagemErro(error, 'Erro ao enviar solicitação.'));
       setIsSubmitting(false);
     }
   };
 
   if (!professionalId) {
-    return <p>Nenhum profissional selecionado.</p>;
+    return (
+      <div className="solic-container">
+        <div className="solic-card" style={{ textAlign: 'center' }}>
+          <h2>Nenhum profissional selecionado</h2>
+          <p>Escolha um profissional na lista para enviar uma solicitação.</p>
+          <button
+            type="button"
+            className="btn-enviar-solic"
+            onClick={() => navigate('/lista-profissionais')}
+          >
+            Ver profissionais
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="solic-container">
       <div className="solic-card">
+        <BackButton fallback="/lista-profissionais" />
 
         <div className="solic-header-text">
           <h2>Solicitar Serviço</h2>
@@ -212,11 +246,7 @@ function SolicServico() {
                   id="imagemDemanda"
                   accept="image/*"
                   multiple
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files);
-                    setImagens(files);
-                    setPreviews(files.map((f) => URL.createObjectURL(f)));
-                  }}
+                  onChange={adicionarImagens}
                   disabled={isSubmitting}
                 />
                 {previews.length > 0 && (
@@ -228,10 +258,9 @@ function SolicServico() {
                           type="button"
                           className="preview-remove"
                           onClick={() => {
-                            const novasImagens = imagens.filter((_, idx) => idx !== i);
-                            const novosPreviews = previews.filter((_, idx) => idx !== i);
-                            setImagens(novasImagens);
-                            setPreviews(novosPreviews);
+                            URL.revokeObjectURL(previews[i]);
+                            setImagens(imagens.filter((_, idx) => idx !== i));
+                            setPreviews(previews.filter((_, idx) => idx !== i));
                           }}
                         >×</button>
                       </div>
@@ -240,7 +269,7 @@ function SolicServico() {
                 )}
                 {previews.length > 0 && (
                   <p className="preview-count">
-                    <i className="bi bi-images"></i> {previews.length} imagem{previews.length > 1 ? 'ns' : ''} selecionada{previews.length > 1 ? 's' : ''}
+                    <i className="bi bi-images"></i> {previews.length} de 5 imagens (até 5 MB cada)
                   </p>
                 )}
               </div>
