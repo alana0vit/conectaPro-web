@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import BackButton from '../../components/BackButton';
 import api from '../../services/api';
+import { extrairMensagemErro } from '../../utils/errorUtils';
 import './RedefinicaoSenha.css';
 
 const RedefinicaoSenha = () => {
@@ -46,7 +48,7 @@ const RedefinicaoSenha = () => {
 
         } catch (error) {
             console.error('Erro ao redefinir a senha:', error);
-            toast.error('Ocorreu um erro. Seu link pode ter expirado, solicite um novo.');
+            toast.error(extrairMensagemErro(error, 'Ocorreu um erro. Seu link pode ter expirado, solicite um novo.'));
         } finally {
             setIsSubmitting(false);
         }
@@ -59,6 +61,7 @@ const RedefinicaoSenha = () => {
     return (
         <div className="redefinicao-senha-container">
             <div className="redefinicao-senha-card">
+                <BackButton to="/login" label="Voltar para o login" />
                 <div className="redefinicao-header-text">
                     <h2>Criar Nova Senha</h2>
                     <p>Digite sua nova senha abaixo para recuperar o acesso à sua conta.</p>

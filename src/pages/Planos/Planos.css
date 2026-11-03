@@ -1,1 +1,182 @@
-.planos-page{min-height:100vh;background:#f7f9fc;padding:60px 24px 80px;color:#172033}.planos-hero{max-width:850px;margin:0 auto 45px;text-align:center}.planos-kicker{font-size:12px;font-weight:800;letter-spacing:1.5px;color:#4b7bec}.planos-hero h1{font-size:42px;margin:10px 0;color:#111827}.planos-hero p{font-size:17px;color:#64748b;line-height:1.6}.planos-loading{text-align:center;padding:50px;color:#64748b}.planos-grid{max-width:1100px;margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.plano-card{background:#fff;border:1px solid #e5e7eb;border-radius:20px;padding:28px;box-shadow:0 8px 25px rgba(15,23,42,.06);display:flex;flex-direction:column}.plano-card h2{font-size:28px;margin:15px 0 6px}.plano-card p{color:#64748b;min-height:48px;line-height:1.5}.plano-badge{display:inline-block;padding:6px 10px;border-radius:20px;background:#eef4ff;color:#315fbd;font-size:12px;font-weight:800}.plano-price{margin:25px 0}.plano-price strong{font-size:34px}.plano-price span{color:#64748b}.plano-card ul{list-style:none;padding:0;margin:0 0 25px;display:flex;flex-direction:column;gap:13px;color:#475569;flex:1}.plano-card li i{color:#4b7bec;margin-right:8px}.plano-card button{border:0;border-radius:10px;padding:13px;background:#2563eb;color:#fff;font-weight:800;cursor:pointer}.plano-card button:disabled{opacity:.6;cursor:wait}.plano-footnote{text-align:center;color:#94a3b8;font-size:13px;margin:28px auto 0;max-width:800px}@media(max-width:850px){.planos-grid{grid-template-columns:1fr;max-width:480px}.planos-hero h1{font-size:32px}}
+.planos-page {
+  min-height: 80vh;
+  background: #f8f9fa;
+  padding: 24px 24px 64px;
+  box-sizing: border-box;
+}
+
+.planos-page .voltar-barra {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.planos-hero {
+  max-width: 720px;
+  margin: 0 auto 40px;
+  text-align: center;
+}
+
+.planos-kicker {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #007bff;
+  background: rgba(0, 123, 255, 0.08);
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.planos-hero h1 {
+  margin: 0 0 12px;
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  color: #1e293b;
+}
+
+.planos-hero p {
+  margin: 0;
+  color: #64748b;
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.planos-loading {
+  text-align: center;
+  color: #64748b;
+  padding: 48px 0;
+}
+
+.planos-grid {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  align-items: stretch;
+}
+
+.plano-card {
+  --plano-cor: #94a3b8;
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  border-top: 5px solid var(--plano-cor);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.plano-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.1);
+}
+
+.plano-bronze { --plano-cor: #c27c3a; }
+.plano-prata { --plano-cor: #94a3b8; }
+.plano-ouro { --plano-cor: #eab308; }
+
+.plano-header h2 {
+  margin: 10px 0 6px;
+  font-size: 1.5rem;
+  color: #1e293b;
+}
+
+.plano-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  min-height: 2.9em;
+}
+
+.plano-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: color-mix(in srgb, var(--plano-cor) 22%, #fff);
+  border: 1px solid color-mix(in srgb, var(--plano-cor) 55%, #fff);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.plano-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.plano-price strong {
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+.plano-price span {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.plano-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.plano-card li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.plano-card li i {
+  color: var(--plano-cor);
+  font-size: 1.1rem;
+}
+
+.plano-card button {
+  border: none;
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: #007bff;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.plano-card button:hover:not(:disabled) {
+  background: #0066d6;
+}
+
+.plano-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.planos-footnote {
+  max-width: 720px;
+  margin: 32px auto 0;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .planos-page {
+    padding: 16px 16px 48px;
+  }
+}

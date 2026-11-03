@@ -1,3 +1,12 @@
+.pagina-carregando {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 1rem;
+}
+
 /* Estilos globais de modal — usados em várias telas (Dashboard, Cadastro, EditarDemanda, etc).
    Centralizados aqui para não depender de qual página carregou primeiro o CSS. */
 

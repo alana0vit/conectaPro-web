@@ -2,6 +2,7 @@ import emailjs from '@emailjs/browser';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import ilustracaoImg from '../../assets/imgfaleconosco.jpg';
+import BackButton from '../../components/BackButton';
 import './FaleConosco.css';
 
 function FaleConosco() {
@@ -56,6 +57,7 @@ function FaleConosco() {
       <div className="cartao-fale-conosco">
         
         <div className="secao-visual-contato">
+          <BackButton fallback="/" />
           <p className="etiqueta-contato">ESTAMOS AQUI PARA TE AJUDAR!</p>
           <h1 className="titulo-contato">Atendimento ao Cliente e Suporte</h1>
           <p className="texto-contato">

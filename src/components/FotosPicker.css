@@ -1,0 +1,61 @@
+.fotos-picker { display: flex; flex-direction: column; gap: 8px; }
+
+.fotos-picker-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.fotos-picker-item,
+.fotos-picker-add {
+  width: 84px;
+  height: 84px;
+  border-radius: 10px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.fotos-picker-item { overflow: visible; }
+
+.fotos-picker-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.fotos-picker-item button {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: #ef4444;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+}
+
+.fotos-picker-add {
+  border: 2px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 4px;
+}
+
+.fotos-picker-add i { font-size: 22px; }
+.fotos-picker-add:hover:not(:disabled) { border-color: #007bff; color: #007bff; }
+.fotos-picker-add:disabled, .fotos-picker-item button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.fotos-picker-ajuda { color: #94a3b8; font-size: 12px; }
