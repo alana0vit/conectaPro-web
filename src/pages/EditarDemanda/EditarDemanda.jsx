@@ -367,7 +367,6 @@ function EditarDemanda() {
             </small>
           </div>
 
-          {/* ─── Feature 1: adicionar fotos quando a demanda não tem nenhuma ─── */}
           {fotos.length === 0 && (
             <div className="editar-demanda-campo">
               <label>Fotos (opcional, recomendado)</label>
@@ -383,7 +382,6 @@ function EditarDemanda() {
             </div>
           )}
 
-          {/* ─── Feature 3: galeria com confirmação modal + min 1 foto ─── */}
           {fotos.length > 0 && (
             <div className="editar-demanda-campo">
               <label>Fotos anexadas ({fotos.length})</label>
