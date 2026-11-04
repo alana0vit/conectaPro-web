@@ -36,6 +36,12 @@ function EditarDemanda() {
   const [original, setOriginal] = useState(null);
   const [enderecos, setEnderecos] = useState([]);
   const [fotos, setFotos] = useState([]);
+  // O PATCH substitui a lista inteira de imgUrl no backend e apaga os arquivos
+  // antigos no R2. Por isso o picker só é habilitado quando `fotos.length === 0`.
+  const [novasFotos, setNovasFotos] = useState([]);
+  // Foto aguardando confirmação. Enquanto preenchida, o modal com preview
+  // está aberto e nada é marcado para remoção até o usuário confirmar.
+  const [fotoParaRemover, setFotoParaRemover] = useState(null);
   // Fotos que o usuário marcou para remover. A exclusão só acontece no "Salvar",
   // porque apagar do R2 é irreversível e a tela tem botão de cancelar.
   const [fotosRemovidas, setFotosRemovidas] = useState([]);
@@ -102,15 +108,28 @@ function EditarDemanda() {
     carregar();
   }, [id, clientId, navigate]);
 
-  const marcarRemocao = (nomeArquivo) => {
+  const tentarMarcarRemocao = (nomeArquivo) => {
+    const naoRemovidas = fotos.filter((f) => !fotosRemovidas.includes(f));
+    if (naoRemovidas.length <= 1) {
+      toast.warn("Você precisa manter pelo menos 1 foto na solicitação.");
+      return;
+    }
+    // Não marca direto: abre o modal com preview para confirmação.
+    setFotoParaRemover(nomeArquivo);
+  };
+
+  const confirmarRemocaoDaFoto = () => {
+    if (!fotoParaRemover) return;
     setFotosRemovidas((atuais) =>
-      atuais.includes(nomeArquivo) ? atuais : [...atuais, nomeArquivo]
+      atuais.includes(fotoParaRemover) ? atuais : [...atuais, fotoParaRemover]
     );
+    setFotoParaRemover(null);
   };
 
   const desfazerRemocao = (nomeArquivo) => {
     setFotosRemovidas((atuais) => atuais.filter((f) => f !== nomeArquivo));
   };
+
 
   const validar = () => {
     if (!title.trim() || !description.trim()) {
@@ -178,6 +197,10 @@ function EditarDemanda() {
       formData.append("addressId", addressId);
     }
 
+    if (novasFotos.length > 0) {
+      novasFotos.forEach((foto) => formData.append("imagens", foto));
+    }
+
     const temCampoAlterado = [...formData.keys()].length > 0;
 
     // Nem campo alterado, nem foto marcada — evita requisição inútil.
@@ -188,8 +211,8 @@ function EditarDemanda() {
 
     setSalvando(true);
 
-    // As remoções vão primeiro, uma a uma (o endpoint é por arquivo).
-    // Se alguma falhar, para aqui e não mexe no resto.
+    // Se alguma falhar, para aqui e não mexe no resto. O endpoint é por arquivo,
+    // e o nome vai URL-encoded para evitar problemas com caracteres especiais.
     for (const nomeArquivo of fotosRemovidas) {
       try {
         await api.delete(
@@ -344,12 +367,32 @@ function EditarDemanda() {
             </small>
           </div>
 
+          {/* ─── Feature 1: adicionar fotos quando a demanda não tem nenhuma ─── */}
+          {fotos.length === 0 && (
+            <div className="editar-demanda-campo">
+              <label>Fotos (opcional, recomendado)</label>
+              <FotosPicker
+                arquivos={novasFotos}
+                onChange={setNovasFotos}
+                max={5}
+                disabled={salvando}
+              />
+              <small className="editar-demanda-ajuda">
+                Adicionar fotos ajuda o profissional a entender melhor o problema.
+              </small>
+            </div>
+          )}
+
+          {/* ─── Feature 3: galeria com confirmação modal + min 1 foto ─── */}
           {fotos.length > 0 && (
             <div className="editar-demanda-campo">
               <label>Fotos anexadas ({fotos.length})</label>
               <div className="editar-demanda-fotos">
                 {fotos.map((nome) => {
                   const marcada = fotosRemovidas.includes(nome);
+                  const naoRemovidas = fotos.filter((f) => !fotosRemovidas.includes(f));
+                  const ehUltima = naoRemovidas.length === 1 && naoRemovidas[0] === nome;
+
                   return (
                     <div
                       key={nome}
@@ -359,11 +402,17 @@ function EditarDemanda() {
                       <button
                         type="button"
                         className="editar-demanda-foto-remover"
-                        title={marcada ? "Manter esta foto" : "Marcar para remoção"}
-                        onClick={() =>
-                          marcada ? desfazerRemocao(nome) : marcarRemocao(nome)
+                        title={
+                          marcada
+                            ? "Manter esta foto"
+                            : ehUltima
+                              ? "Essa é a última foto — mantenha ao menos 1"
+                              : "Remover esta foto"
                         }
-                        disabled={salvando}
+                        onClick={() =>
+                          marcada ? desfazerRemocao(nome) : tentarMarcarRemocao(nome)
+                        }
+                        disabled={salvando || (!marcada && ehUltima)}
                       >
                         {marcada ? "↺" : "×"}
                       </button>
@@ -407,6 +456,84 @@ function EditarDemanda() {
 
         </form>
       </div>
+
+      {/* ─── Feature 3: modal de confirmação com preview da foto ─── */}
+      {fotoParaRemover && (
+        <div
+          className="modal-overlay"
+          onClick={() => !salvando && setFotoParaRemover(null)}
+        >
+          <div
+            className="modal-container"
+            style={{ maxWidth: '380px', textAlign: 'center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 14px 0', color: '#0f172a' }}>
+              Remover esta foto?
+            </h3>
+
+            <img
+              src={getImageUrl(fotoParaRemover)}
+              alt="Foto a ser removida"
+              style={{
+                width: '100%',
+                maxHeight: '260px',
+                objectFit: 'contain',
+                borderRadius: '12px',
+                background: '#f1f5f9',
+                marginBottom: '14px',
+              }}
+            />
+
+            <p
+              style={{
+                color: '#64748b',
+                fontSize: '13px',
+                lineHeight: 1.5,
+                margin: '0 0 20px 0',
+              }}
+            >
+              Essa foto será marcada para remoção. A exclusão só acontece
+              quando você clicar em <strong>Salvar Alterações</strong>.
+            </p>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setFotoParaRemover(null)}
+                style={{
+                  flex: 1,
+                  padding: '11px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  color: '#475569',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={confirmarRemocaoDaFoto}
+                style={{
+                  flex: 1,
+                  padding: '11px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: '#dc2626',
+                  color: '#fff',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Remover
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
