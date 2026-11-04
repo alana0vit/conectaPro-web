@@ -36,6 +36,21 @@ function DashboardCliente() {
   const usuarioLogado = userStorage && userStorage !== "undefined" ? JSON.parse(userStorage) : null;
   const clienteId = usuarioLogado?.id;
 
+  // Demanda "incompleta" = algum dos 4 critérios. Só sinaliza para ABERTO,
+  // que é o único status editável pelo cliente.
+  function demandaIncompleta(demanda) {
+    if (!demanda) return false;
+    const status = String(demanda.demandStatus || '').toUpperCase();
+    if (status !== 'ABERTO') return false;
+
+    const semValor = demanda.suggestedValue == null || demanda.suggestedValue === '';
+    const semData = !demanda.suggestedDate;
+    const semDescricao = !demanda.description || demanda.description.trim() === '';
+    const semImagens = !Array.isArray(demanda.imgUrl) || demanda.imgUrl.length === 0;
+
+    return semValor || semData || semDescricao || semImagens;
+  }
+
   const buscarMeusPedidos = async (silencioso = false) => {
     if (!clienteId) return;
 
@@ -370,9 +385,19 @@ function DashboardCliente() {
                     >
                       <div className="row-item-top-flex">
                         <h4>{pedido.title}</h4>
-                        <span className={`status-pill-badge pill-${getStatusClass(pedido.demandStatus)}`}>
-                          {traduzirStatusCliente(pedido.demandStatus)}
-                        </span>
+                        <div className="row-item-badges">
+                          {demandaIncompleta(pedido) && (
+                            <span
+                              className="incomplete-badge"
+                              title="Faltam informações — complete para ajudar o profissional"
+                            >
+                              <i className="bi bi-info-circle"></i> Incompleta
+                            </span>
+                          )}
+                          <span className={`status-pill-badge pill-${getStatusClass(pedido.demandStatus)}`}>
+                            {traduzirStatusCliente(pedido.demandStatus)}
+                          </span>
+                        </div>
                       </div>
 
                       {pedido.professionalId?.name && (
@@ -477,6 +502,16 @@ function DashboardCliente() {
                 </div>
                 <DemandFotos demanda={pedidoDetalhado} modo="galeria" />
               </div>
+
+              {demandaIncompleta(pedidoDetalhado) && (
+                <div className="incomplete-hint-box">
+                  <i className="bi bi-lightbulb"></i>
+                  <div>
+                    <strong>Esta solicitação está incompleta.</strong>
+                    <p>Adicione valor, data, descrição ou fotos para ajudar o profissional a entender melhor o que você precisa.</p>
+                  </div>
+                </div>
+              )}
 
               <div className="modal-sheet-footer-actions">
                 {String(pedidoDetalhado.demandStatus || '').toUpperCase() === 'ABERTO' && (
