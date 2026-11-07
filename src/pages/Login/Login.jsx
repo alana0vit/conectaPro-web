@@ -43,7 +43,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <BackButton to="/" label="Voltar para o início" />
+        <BackButton to="/" label="Voltar" />
         <h2>Login</h2>
         <p>Acesse sua conta para gerenciar seus serviços.</p>
 
