@@ -148,7 +148,8 @@ function DashboardProfissional() {
     if (abaAtiva === "NOVO") return s === "ABERTO";
     if (abaAtiva === "PAGAMENTO") return s === "AGUARDANDO_PAGAMENTO";
     if (abaAtiva === "ANDAMENTO") return s === "AGUARDANDO";
-    if (abaAtiva === "FINALIZADO") return s === "FECHADO" || s === "REJEITADO" || s === "EXPIRADO";
+    if (abaAtiva === "FINALIZADO") return s === "FECHADO";
+    if (abaAtiva === "RECUSADO") return s === "REJEITADO" || s === "EXPIRADO";
     return true;
   });
 
@@ -158,7 +159,8 @@ function DashboardProfissional() {
       if (statusAlvo === "ABERTO") return s === "ABERTO";
       if (statusAlvo === "PAGAMENTO") return s === "AGUARDANDO_PAGAMENTO";
       if (statusAlvo === "AGUARDANDO") return s === "AGUARDANDO";
-      if (statusAlvo === "FINALIZADO") return s === "FECHADO" || s === "REJEITADO" || s === "EXPIRADO";
+      if (statusAlvo === "FINALIZADO") return s === "FECHADO";
+      if (statusAlvo === "RECUSADO") return s === "REJEITADO" || s === "EXPIRADO";
       return false;
     }).length;
   };
@@ -264,6 +266,9 @@ function DashboardProfissional() {
             </button>
             <button className={`tab-btn ${abaAtiva === "FINALIZADO" ? "active" : ""}`} onClick={() => setAbaAtiva("FINALIZADO")}>
               Finalizadas <span className="tab-count">{contagem("FINALIZADO")}</span>
+            </button>
+            <button className={`tab-btn ${abaAtiva === "RECUSADO" ? "active" : ""}`} onClick={() => setAbaAtiva("RECUSADO")}>
+              Recusadas/Expiradas <span className="tab-count">{contagem("RECUSADO")}</span>
             </button>
           </div>
 
@@ -380,12 +385,12 @@ function DashboardProfissional() {
       {aceite.visivel && (
         <div className="modal-overlay" style={{ zIndex: 1090 }}>
           <div className="modal-container" style={{ maxWidth: '430px', padding: '26px' }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>Aceitar serviço</h3>
-            <p style={{ color:'#64748b', fontSize:'14px', lineHeight:1.5 }}>
+            <h3 style={{ marginTop: 0, fontSize: 20, color: '#0f172a' }}>Aceitar serviço</h3>
+            <p style={{ color:'#64748b', fontSize:'14px', lineHeight:1.5, margin: '0 0 18px' }}>
               Defina o valor final que será apresentado ao cliente no checkout.
             </p>
             <form onSubmit={confirmarAceite}>
-              <label style={{ display:'block', fontSize:'13px', fontWeight:700, marginBottom:6 }}>Valor final (R$)</label>
+              <label style={{ display:'block', fontSize:'13px', fontWeight:700, marginBottom:6, color:'#334155' }}>Valor final (R$)</label>
               <input
                 type="number"
                 min="0.01"
@@ -393,11 +398,11 @@ function DashboardProfissional() {
                 value={aceite.valor}
                 onChange={(e) => setAceite(prev => ({ ...prev, valor: e.target.value }))}
                 autoFocus
-                style={{ width:'100%', boxSizing:'border-box', padding:'12px', border:'1px solid #dbe2ea', borderRadius:10, fontSize:16 }}
+                className="modal-input"
               />
-              <div style={{ display:'flex', gap:10, marginTop:20 }}>
-                <button type="button" className="btn-cancelar" style={{ flex:1, padding:11 }} onClick={() => setAceite({ visivel:false, pedidoId:null, valor:"" })}>Cancelar</button>
-                <button type="submit" className="btn-confirmar" style={{ flex:1, padding:11 }}>Aceitar e enviar para pagamento</button>
+              <div className="modal-actions">
+                <button type="button" className="btn-cancelar" onClick={() => setAceite({ visivel:false, pedidoId:null, valor:"" })}>Cancelar</button>
+                <button type="submit" className="btn-confirmar">Aceitar e enviar para pagamento</button>
               </div>
             </form>
           </div>
@@ -414,17 +419,15 @@ function DashboardProfissional() {
             <p style={{ fontSize: '14px', color: '#555', lineHeight: '1.5', margin: '0 0 20px 0' }}>
               Você tem certeza de que deseja <strong>{confirmacao.tituloAcao}</strong>? Essa operação alterará o andamento do chamado.
             </p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <div className="modal-actions">
               <button
                 className="btn-cancelar"
-                style={{ padding: '10px 20px', borderRadius: '8px', fontWeight: '600', border: '1px solid #ddd', background: '#fff', cursor: 'pointer' }}
                 onClick={() => setConfirmacao({ visivel: false, pedidoId: null, novoStatus: null, tituloAcao: "" })}
               >
                 Cancelar
               </button>
               <button
                 className="btn-confirmar"
-                style={{ padding: '10px 20px', borderRadius: '8px', fontWeight: '700', background: '#0066ff', color: '#fff', border: 'none', cursor: 'pointer' }}
                 onClick={executarAcaoConfirmada}
               >
                 Sim, Continuar

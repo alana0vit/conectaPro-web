@@ -206,13 +206,22 @@ function SolicServico() {
             <div className="form-column">
               <div className="input-group">
                 <label>Endereço *</label>
-                <select value={addressId} onChange={(e) => setAddressId(e.target.value)} disabled={isSubmitting}>
-                  {addresses.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.street}, {a.number} - {a.neighborhood}
-                    </option>
-                  ))}
-                </select>
+                {addresses.length > 1 ? (
+                  <select value={addressId} onChange={(e) => setAddressId(e.target.value)} disabled={isSubmitting}>
+                    {addresses.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.street}, {a.number} - {a.neighborhood}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div style={{ padding: '12px 14px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#334155' }}>
+                    {addresses[0]
+                      ? `${addresses[0].street}, ${addresses[0].number} - ${addresses[0].neighborhood}`
+                      : 'Nenhum endereço cadastrado'}
+                    <small style={{ display: 'block', color: '#64748b', marginTop: 4 }}>Endereço do seu cadastro.</small>
+                  </div>
+                )}
               </div>
 
               <div className="input-group">
