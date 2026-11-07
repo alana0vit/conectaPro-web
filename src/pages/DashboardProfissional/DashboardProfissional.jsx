@@ -148,7 +148,8 @@ function DashboardProfissional() {
     if (abaAtiva === "NOVO") return s === "ABERTO";
     if (abaAtiva === "PAGAMENTO") return s === "AGUARDANDO_PAGAMENTO";
     if (abaAtiva === "ANDAMENTO") return s === "AGUARDANDO";
-    if (abaAtiva === "FINALIZADO") return s === "FECHADO" || s === "REJEITADO" || s === "EXPIRADO";
+    if (abaAtiva === "FINALIZADO") return s === "FECHADO";
+    if (abaAtiva === "RECUSADO") return s === "REJEITADO" || s === "EXPIRADO";
     return true;
   });
 
@@ -158,7 +159,8 @@ function DashboardProfissional() {
       if (statusAlvo === "ABERTO") return s === "ABERTO";
       if (statusAlvo === "PAGAMENTO") return s === "AGUARDANDO_PAGAMENTO";
       if (statusAlvo === "AGUARDANDO") return s === "AGUARDANDO";
-      if (statusAlvo === "FINALIZADO") return s === "FECHADO" || s === "REJEITADO" || s === "EXPIRADO";
+      if (statusAlvo === "FINALIZADO") return s === "FECHADO";
+      if (statusAlvo === "RECUSADO") return s === "REJEITADO" || s === "EXPIRADO";
       return false;
     }).length;
   };
@@ -264,6 +266,9 @@ function DashboardProfissional() {
             </button>
             <button className={`tab-btn ${abaAtiva === "FINALIZADO" ? "active" : ""}`} onClick={() => setAbaAtiva("FINALIZADO")}>
               Finalizadas <span className="tab-count">{contagem("FINALIZADO")}</span>
+            </button>
+            <button className={`tab-btn ${abaAtiva === "RECUSADO" ? "active" : ""}`} onClick={() => setAbaAtiva("RECUSADO")}>
+              Recusadas/Expiradas <span className="tab-count">{contagem("RECUSADO")}</span>
             </button>
           </div>
 

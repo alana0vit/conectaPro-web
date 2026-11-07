@@ -180,3 +180,11 @@
     padding: 16px 16px 48px;
   }
 }
+
+.plano-card { position: relative; }
+.plano-card.plano-atual { outline: 3px solid #16a34a; }
+.plano-atual-tag {
+  position: absolute; top: 12px; right: 12px; background: #16a34a; color: #fff;
+  font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+}
+.plano-validade { text-align: center; color: #475569; font-size: 13px; margin: 0 0 10px; }

@@ -199,7 +199,8 @@ function DashboardCliente() {
     if (abaAtiva === 'PENDENTE') return status === 'ABERTO';
     if (abaAtiva === 'PAGAMENTO') return status === 'AGUARDANDO_PAGAMENTO';
     if (abaAtiva === 'ANDAMENTO') return status === 'AGUARDANDO';
-    if (abaAtiva === 'FINALIZADO') return status === 'FECHADO' || status === 'REJEITADO' || status === 'EXPIRADO';
+    if (abaAtiva === 'FINALIZADO') return status === 'FECHADO';
+    if (abaAtiva === 'RECUSADO') return status === 'REJEITADO' || status === 'EXPIRADO';
     return true;
   });
 
@@ -208,7 +209,11 @@ function DashboardCliente() {
   const emAndamento = pedidos.filter(p => String(p.demandStatus || '').toUpperCase() === 'AGUARDANDO').length;
   const finalizados = pedidos.filter(p => {
     const s = String(p.demandStatus || '').toUpperCase();
-    return s === 'FECHADO' || s === 'REJEITADO' || s === 'EXPIRADO';
+    return s === 'FECHADO';
+  }).length;
+  const recusados = pedidos.filter(p => {
+    const s = String(p.demandStatus || '').toUpperCase();
+    return s === 'REJEITADO' || s === 'EXPIRADO';
   }).length;
 
   return (
@@ -342,6 +347,12 @@ function DashboardCliente() {
               >
                 Finalizados <span className="tab-count">{finalizados}</span>
               </button>
+              <button
+                className={`tab-link-item ${abaAtiva === 'RECUSADO' ? 'is-active' : ''}`}
+                onClick={() => setAbaAtiva('RECUSADO')}
+              >
+                Recusadas <span className="tab-count">{recusados}</span>
+              </button>
             </div>
 
             {loading ? (
@@ -397,6 +408,16 @@ function DashboardCliente() {
                         <span className="btn-trigger-view-more" onClick={() => setPedidoDetalhado(pedido)}>
                           <i className="bi bi-eye"></i> Ver mais detalhes
                         </span>
+
+                        {['REJEITADO', 'EXPIRADO'].includes(String(pedido.demandStatus || '').toUpperCase()) && (
+                          <button
+                            type="button"
+                            className="btn-modal-submit-success"
+                            onClick={() => navigate('/lista-profissionais', { state: { reassignDemandId: pedido.id } })}
+                          >
+                            <i className="bi bi-arrow-left-right"></i> Escolher outro profissional
+                          </button>
+                        )}
 
                         {String(pedido.demandStatus || '').toUpperCase() === 'FECHADO' && (
                           notaAvaliacao != null ? (
@@ -491,7 +512,7 @@ function DashboardCliente() {
                   </button>
                 )}
 
-                {String(pedidoDetalhado.demandStatus || '').toUpperCase() === 'REJEITADO' && (
+                {['REJEITADO', 'EXPIRADO'].includes(String(pedidoDetalhado.demandStatus || '').toUpperCase()) && (
                   <button
                     className="btn-modal-submit-success"
                     onClick={() => {
