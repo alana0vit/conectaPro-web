@@ -157,3 +157,28 @@
         gap: 8px;
     }
 }
+/* Estilo próprio dos campos (antes dependia de CSS de outra página, que com
+   o carregamento sob demanda das rotas deixou de ser carregado). */
+.login-card .input-group input[type="email"],
+.login-card .input-group input[type="text"],
+.login-card .input-group input[type="password"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #fff;
+    color: #212529;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-card .input-group input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+.login-card .password-input-wrapper input {
+    padding-right: 44px;
+}

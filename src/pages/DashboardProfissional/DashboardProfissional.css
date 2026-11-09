@@ -382,3 +382,19 @@
     font-size: 20px;
   }
 }
+/* Pop-ups de aceitar / confirmar ação */
+.modal-input {
+  width: 100%; box-sizing: border-box; padding: 12px 14px; font-size: 16px;
+  border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; color: #0f172a; outline: none;
+}
+.modal-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+.modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+.modal-actions button {
+  flex: 1; padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: background 0.2s ease, transform 0.1s ease;
+}
+.modal-actions button:active { transform: translateY(1px); }
+.modal-actions .btn-cancelar { background: #fff; color: #475569; border: 1px solid #cbd5e1; }
+.modal-actions .btn-cancelar:hover { background: #f1f5f9; }
+.modal-actions .btn-confirmar { background: #2563eb; color: #fff; border: none; }
+.modal-actions .btn-confirmar:hover { background: #1d4ed8; }

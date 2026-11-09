@@ -36,21 +36,6 @@ function DashboardCliente() {
   const usuarioLogado = userStorage && userStorage !== "undefined" ? JSON.parse(userStorage) : null;
   const clienteId = usuarioLogado?.id;
 
-  // Demanda "incompleta" = algum dos 4 critérios. Só sinaliza para ABERTO,
-  // que é o único status editável pelo cliente.
-  function demandaIncompleta(demanda) {
-    if (!demanda) return false;
-    const status = String(demanda.demandStatus || '').toUpperCase();
-    if (status !== 'ABERTO') return false;
-
-    const semValor = demanda.suggestedValue == null || demanda.suggestedValue === '';
-    const semData = !demanda.suggestedDate;
-    const semDescricao = !demanda.description || demanda.description.trim() === '';
-    const semImagens = !Array.isArray(demanda.imgUrl) || demanda.imgUrl.length === 0;
-
-    return semValor || semData || semDescricao || semImagens;
-  }
-
   const buscarMeusPedidos = async (silencioso = false) => {
     if (!clienteId) return;
 
@@ -214,7 +199,8 @@ function DashboardCliente() {
     if (abaAtiva === 'PENDENTE') return status === 'ABERTO';
     if (abaAtiva === 'PAGAMENTO') return status === 'AGUARDANDO_PAGAMENTO';
     if (abaAtiva === 'ANDAMENTO') return status === 'AGUARDANDO';
-    if (abaAtiva === 'FINALIZADO') return status === 'FECHADO' || status === 'REJEITADO' || status === 'EXPIRADO';
+    if (abaAtiva === 'FINALIZADO') return status === 'FECHADO';
+    if (abaAtiva === 'RECUSADO') return status === 'REJEITADO' || status === 'EXPIRADO';
     return true;
   });
 
@@ -223,7 +209,11 @@ function DashboardCliente() {
   const emAndamento = pedidos.filter(p => String(p.demandStatus || '').toUpperCase() === 'AGUARDANDO').length;
   const finalizados = pedidos.filter(p => {
     const s = String(p.demandStatus || '').toUpperCase();
-    return s === 'FECHADO' || s === 'REJEITADO' || s === 'EXPIRADO';
+    return s === 'FECHADO';
+  }).length;
+  const recusados = pedidos.filter(p => {
+    const s = String(p.demandStatus || '').toUpperCase();
+    return s === 'REJEITADO' || s === 'EXPIRADO';
   }).length;
 
   return (
@@ -357,6 +347,12 @@ function DashboardCliente() {
               >
                 Finalizados <span className="tab-count">{finalizados}</span>
               </button>
+              <button
+                className={`tab-link-item ${abaAtiva === 'RECUSADO' ? 'is-active' : ''}`}
+                onClick={() => setAbaAtiva('RECUSADO')}
+              >
+                Recusadas <span className="tab-count">{recusados}</span>
+              </button>
             </div>
 
             {loading ? (
@@ -385,19 +381,9 @@ function DashboardCliente() {
                     >
                       <div className="row-item-top-flex">
                         <h4>{pedido.title}</h4>
-                        <div className="row-item-badges">
-                          {demandaIncompleta(pedido) && (
-                            <span
-                              className="incomplete-badge"
-                              title="Faltam informações — complete para ajudar o profissional"
-                            >
-                              <i className="bi bi-info-circle"></i> Incompleta
-                            </span>
-                          )}
-                          <span className={`status-pill-badge pill-${getStatusClass(pedido.demandStatus)}`}>
-                            {traduzirStatusCliente(pedido.demandStatus)}
-                          </span>
-                        </div>
+                        <span className={`status-pill-badge pill-${getStatusClass(pedido.demandStatus)}`}>
+                          {traduzirStatusCliente(pedido.demandStatus)}
+                        </span>
                       </div>
 
                       {pedido.professionalId?.name && (
@@ -422,6 +408,16 @@ function DashboardCliente() {
                         <span className="btn-trigger-view-more" onClick={() => setPedidoDetalhado(pedido)}>
                           <i className="bi bi-eye"></i> Ver mais detalhes
                         </span>
+
+                        {['REJEITADO', 'EXPIRADO'].includes(String(pedido.demandStatus || '').toUpperCase()) && (
+                          <button
+                            type="button"
+                            className="btn-modal-submit-success"
+                            onClick={() => navigate('/lista-profissionais', { state: { reassignDemandId: pedido.id } })}
+                          >
+                            <i className="bi bi-arrow-left-right"></i> Escolher outro profissional
+                          </button>
+                        )}
 
                         {String(pedido.demandStatus || '').toUpperCase() === 'FECHADO' && (
                           notaAvaliacao != null ? (
@@ -503,16 +499,6 @@ function DashboardCliente() {
                 <DemandFotos demanda={pedidoDetalhado} modo="galeria" />
               </div>
 
-              {demandaIncompleta(pedidoDetalhado) && (
-                <div className="incomplete-hint-box">
-                  <i className="bi bi-lightbulb"></i>
-                  <div>
-                    <strong>Esta solicitação está incompleta.</strong>
-                    <p>Adicione valor, data, descrição ou fotos para ajudar o profissional a entender melhor o que você precisa.</p>
-                  </div>
-                </div>
-              )}
-
               <div className="modal-sheet-footer-actions">
                 {String(pedidoDetalhado.demandStatus || '').toUpperCase() === 'ABERTO' && (
                   <button
@@ -526,7 +512,7 @@ function DashboardCliente() {
                   </button>
                 )}
 
-                {String(pedidoDetalhado.demandStatus || '').toUpperCase() === 'REJEITADO' && (
+                {['REJEITADO', 'EXPIRADO'].includes(String(pedidoDetalhado.demandStatus || '').toUpperCase()) && (
                   <button
                     className="btn-modal-submit-success"
                     onClick={() => {

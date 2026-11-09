@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 import api from "../../services/api";
 import { getImageUrl } from "../../utils/imageUtils";
 import "./EditarPerfil.css";
@@ -242,6 +243,9 @@ function EditarPerfil() {
             <p>Mantenha seus dados atualizados.</p>
           </header>
 
+          <div style={{ marginBottom: "10px" }}>
+            <BackButton fallback="/" />
+          </div>
           <form
             className="editar-perfil-form"
             onSubmit={handleSubmit(onSubmit)}
@@ -446,7 +450,15 @@ function EditarPerfil() {
               </div>
             </div>
 
-            <div className="form-actions">
+            <div className="form-actions" style={{ gap: "12px" }}>
+              <button
+                type="button"
+                className="btn-submit"
+                style={{ background: "#fff", color: "#475569", border: "1px solid #cbd5e1" }}
+                onClick={() => navigate(-1)}
+              >
+                Cancelar
+              </button>
               <button type="submit" className="btn-submit">
                 Salvar Alterações
               </button>
