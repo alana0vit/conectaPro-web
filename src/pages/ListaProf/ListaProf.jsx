@@ -21,7 +21,9 @@ function ListaProf() {
   const [profissionais, setProfissionais] = useState([]);
   const [termoBusca, setTermoBusca] = useState("");
   const [categorias, setCategorias] = useState([]);
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState(
+    location.state?.categoryId || ""
+  );
   const [filtroEstrelas, setFiltroEstrelas] = useState("TODOS");
   const reassignDemandId = location.state?.reassignDemandId || null;
   const [raioKm, setRaioKm] = useState(20);
