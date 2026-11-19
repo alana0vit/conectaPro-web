@@ -1,0 +1,182 @@
+.mapa-wrapper {
+  width: 100%;
+}
+
+.mapa-container {
+  width: 100%;
+  height: 540px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  z-index: 0; /* mantém o mapa abaixo de modais e do widget de chat */
+}
+
+/* ===== Pinos ===== */
+
+.mapa-pino-wrapper {
+  background: transparent;
+  border: none;
+}
+
+.mapa-pino {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.35);
+  color: #fff;
+  font-size: 14px;
+}
+
+.mapa-pino i {
+  transform: rotate(45deg);
+}
+
+.mapa-pino-usuario {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #0066ff;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.3);
+}
+
+/* ===== Popup ===== */
+
+.mapa-popup {
+  min-width: 210px;
+  font-family: inherit;
+}
+
+.mapa-popup-topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.mapa-popup-foto {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #e2e8f0;
+}
+
+.mapa-popup-foto-vazia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #94a3b8;
+  font-size: 19px;
+}
+
+.mapa-popup-identificacao {
+  min-width: 0;
+}
+
+.mapa-popup-identificacao strong {
+  display: block;
+  font-size: 14px;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.mapa-popup-selo {
+  color: #0066ff;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.mapa-popup-nota {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.mapa-popup-plano {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 7px;
+}
+
+.mapa-popup-categorias {
+  margin: 0 0 6px 0 !important;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.mapa-popup-local {
+  margin: 0 0 10px 0 !important;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.mapa-popup-distancia {
+  font-weight: 600;
+  color: #0066ff;
+}
+
+.mapa-popup-botao {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #0066ff;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.mapa-popup-botao:hover {
+  background: #0055d6;
+}
+
+/* ===== Avisos e rodapé ===== */
+
+.mapa-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  background: #fffbe6;
+  border: 1px solid #f0e2a8;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #7a5c00;
+}
+
+.mapa-rodape {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 10px 0 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+  .mapa-container {
+    height: 420px;
+  }
+}
