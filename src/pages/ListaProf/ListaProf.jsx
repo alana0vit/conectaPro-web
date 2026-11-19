@@ -5,6 +5,7 @@ import imagemBusca from "../../assets/ImgLista1.jpg";
 import api from "../../services/api";
 import BackButton from "../../components/BackButton";
 import HistoricoAvaliacoes from "../../components/HistoricoAvaliacoes";
+import MapaProfissionais from "../../components/MapaProfissionais";
 import { getImageUrl } from "../../utils/imageUtils";
 import "./ListaProf.css";
 
@@ -36,6 +37,11 @@ function ListaProf() {
 
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [usandoLocalizacao, setUsandoLocalizacao] = useState(false);
+  // "lista" ou "mapa". O mapa consome /search/map, que devolve coordenadas arredondadas.
+  const [modoVisualizacao, setModoVisualizacao] = useState("lista");
+  const [profissionaisMapa, setProfissionaisMapa] = useState([]);
+  const [posicaoMapa, setPosicaoMapa] = useState(null);
+  const [carregandoMapa, setCarregandoMapa] = useState(false);
 
   const buscarProfissionais = async (filtros = {}) => {
     ultimosFiltrosRef.current = filtros;
@@ -56,6 +62,37 @@ function ListaProf() {
       console.error("Erro ao buscar profissionais:", error);
     }
   };
+
+  // O mapa usa um endpoint proprio: devolve so o necessario para desenhar pins,
+  // com coordenadas arredondadas e ja ordenado por plano e distancia pelo backend.
+  const buscarParaMapa = async (filtros = {}) => {
+    try {
+      setCarregandoMapa(true);
+      const params = Object.fromEntries(
+        Object.entries(filtros).filter(([, v]) => v !== undefined && v !== ""),
+      );
+      const response = await api.get("/api/user/search/map", { params });
+      setProfissionaisMapa(Array.isArray(response.data) ? response.data : []);
+      // A origem exibida no mapa e a mesma enviada a API, evitando ler refs no render.
+      setPosicaoMapa(
+        params.latitude !== undefined && params.longitude !== undefined
+          ? { latitude: params.latitude, longitude: params.longitude }
+          : null,
+      );
+    } catch (error) {
+      console.error("Erro ao buscar profissionais para o mapa:", error);
+      setProfissionaisMapa([]);
+      setPosicaoMapa(null);
+    } finally {
+      setCarregandoMapa(false);
+    }
+  };
+
+  // Mantem o mapa em sincronia com os filtros ja aplicados na lista.
+  useEffect(() => {
+    if (modoVisualizacao !== "mapa") return;
+    buscarParaMapa(ultimosFiltrosRef.current);
+  }, [modoVisualizacao, profissionais]);
 
   useEffect(() => {
     // A primeira busca já é feita pelo efeito dos filtros (abaixo); chamar aqui duplicava a consulta.
@@ -370,9 +407,39 @@ function ListaProf() {
               <h2 className="titulo-sessao">
                 Profissionais Disponíveis ({profissionaisFiltrados.length})
               </h2>
+
+              <div className="seletor-visualizacao" role="group" aria-label="Modo de visualização">
+                <button
+                  type="button"
+                  className={modoVisualizacao === "lista" ? "ativo" : ""}
+                  onClick={() => setModoVisualizacao("lista")}
+                >
+                  <i className="bi bi-list-ul"></i> Lista
+                </button>
+                <button
+                  type="button"
+                  className={modoVisualizacao === "mapa" ? "ativo" : ""}
+                  onClick={() => setModoVisualizacao("mapa")}
+                >
+                  <i className="bi bi-geo-alt-fill"></i> Mapa
+                </button>
+              </div>
             </div>
 
-            {profissionaisFiltrados.length === 0 ? (
+            {modoVisualizacao === "mapa" ? (
+              carregandoMapa && profissionaisMapa.length === 0 ? (
+                <div className="estado-vazio">
+                  <p>Carregando mapa...</p>
+                </div>
+              ) : (
+                <MapaProfissionais
+                  profissionais={profissionaisMapa}
+                  posicaoUsuario={posicaoMapa}
+                  onSelecionar={lidarComSelecaoProfissional}
+                  rotuloAcao={reassignDemandId ? "Reatribuir" : "Solicitar serviço"}
+                />
+              )
+            ) : profissionaisFiltrados.length === 0 ? (
               <div className="estado-vazio">
                 <p>Nenhum profissional encontrado para os filtros selecionados.</p>
               </div>

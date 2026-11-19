@@ -545,3 +545,53 @@
     top: -45px;
   }
 }
+/* ===== Seletor Lista / Mapa ===== */
+
+.cabecalho-resultados {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.seletor-visualizacao {
+  display: inline-flex;
+  padding: 3px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.seletor-visualizacao button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.seletor-visualizacao button:hover:not(.ativo) {
+  color: #0f172a;
+}
+
+.seletor-visualizacao button.ativo {
+  background: #fff;
+  color: #0066ff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+
+@media (max-width: 600px) {
+  .seletor-visualizacao { width: 100%; }
+  .seletor-visualizacao button { flex: 1; justify-content: center; }
+}
